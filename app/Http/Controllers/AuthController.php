@@ -53,21 +53,19 @@ class AuthController extends Controller
             return response()->json(['message' => 'Erreur serveur', 'error' => $e->getMessage()], 500);
         }
     }
+public function login(Request $request) {
+    $credentials = $request->only('email', 'password');
 
-    public function login(Request $request) {
-        $credentials = $request->only('email', 'password');
-
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-            return response()->json([
-                'status' => 'success',
-                'user' => $user,
-                'needs_profile' => ($user->role === 'prestataire') 
-            ]);
-        }
-
-        return response()->json(['message' => 'Email ou mot de passe incorrect'], 401);
+    if (Auth::attempt($credentials)) {
+        $user = Auth::user();
+        return response()->json([
+            'status' => 'success',
+            'user' => $user,
+            'role' => $user->role // نرسل الـ Role لنعرف أي Dashboard سنفتح
+        ]);
     }
+    return response()->json(['message' => 'Email ou mot de passe incorrect'], 401);
+}
 
     public function completeProfile(Request $request) {
         $prestataire = Prestataire::where('user_id', $request->user_id)->first();
