@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('formules', function (Blueprint $table) {
             $table->id();
-           $table->foreignId('traiteur_id')->constrained('traiteurs')->onDelete('cascade');
+            // الربط مع جدول الممونين (prestataires)
+            $table->foreignId('prestataire_id')->constrained('prestataires')->onDelete('cascade');
             $table->string('nom');
             $table->text('description');
             $table->decimal('prix_par_personne', 10, 2);
-            $table->timestamps(); 
+            $table->timestamps();
         });
     }
 

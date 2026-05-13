@@ -4,9 +4,16 @@ export default {
     "./resources/**/*.blade.php",
     "./resources/**/*.js",
     "./resources/**/*.jsx",
+    "**/*.jsx", // قلب على أي ملف jsx في أي بلاصة
+    "**/*.js",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        emerald: '#047857',
+        gold: '#D4AF37',
+      },
+    },
   },
   plugins: [],
 }

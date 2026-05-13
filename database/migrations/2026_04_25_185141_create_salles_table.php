@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('salles', function (Blueprint $table) {
            $table->id();
-           $table->foreignId('prestataire_id')->constrained()->onDelete('cascade');
+         $table->foreignId('prestataire_id')->constrained('users')->onDelete('cascade');
            $table->string('nom');
            $table->text('adresse');
            $table->string('ville');
@@ -21,11 +21,12 @@ return new class extends Migration
            $table->integer('capacite_max');
            $table->decimal('prix_journee', 10, 2);
            $table->decimal('prix_soiree', 10, 2);
-           $table->string('photo_principale')->nullable(); // Upload
+           $table->string('photo')->nullable(); // Upload
            $table->boolean('disponible')->default(true);
            $table->timestamps();
         });
     }
+    
 
     /**
      * Reverse the migrations.

@@ -9,20 +9,20 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('prestataires', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('nom_commercial');
-            $table->enum('type_service', ['salle', 'traiteur', 'photographe', 'dj', 'negafa']);
-            $table->text('description')->nullable();
-            $table->string('telephone');
-            $table->string('ville');
-            $table->boolean('statut_verifie')->default(false);
-            $table->timestamps();
-        });
-    }
+ public function up()
+{
+   Schema::create('prestataires', function (Blueprint $table) {
+        $table->id(); // هاد id هو prestataire_id
+        $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+        $table->string('type'); // مثلاً: Traiteur, Salle, Photographe
+        $table->string('nom'); // اسم العلامة التجارية أو المحل
+        $table->text('description')->nullable();
+        $table->string('ville');
+        $table->string('telephone');
+        $table->boolean('statut_verifi')->default(false);
+        $table->timestamps();
+    });
+}
 
     /**
      * Reverse the migrations.

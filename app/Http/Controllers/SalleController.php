@@ -1,49 +1,61 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\Salle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class SalleController extends Controller {
-    // 1. عرض كاع الصالات (Listing + Filtres)
-    public function index(Request $request) {
-        $query = Salle::query();
-        if ($request->ville) $query->where('ville', $request->ville);
-        if ($request->prix_max) $query->where('prix_par_jour', '<=', $request->prix_max);
-        
-        return response()->json($query->get());
-    }
 
-    // 2. إضافة صالة (Create + Photo Upload)
+    // جلب القاعات الخاصة بالممون
+public function index(Request $request) {
+    $prestataireId = $request->query('prestataire_id');
+    $salles = \App\Models\Salle::where('prestataire_id', $prestataireId)->latest()->get();
+    return response()->json($salles);
+}
+
+
+
     public function store(Request $request) {
-        $request->validate([
-            'nom_salle' => 'required',
-            'capacite' => 'required|integer',
-            'prix_par_jour' => 'required|numeric',
-            'photo' => 'required|image|mimes:jpeg,png,jpg|max:2048'
-        ]);
+        try {
+            $validated = $request->validate([
+                'prestataire_id' => 'required|exists:users,id', // تأكدي أن الجدول سميتو users أو حسب ما عندك
+                'nom'            => 'required|string',
+                'adresse'        => 'required|string',
+                'ville'          => 'required|string',
+                'capacite_min'   => 'required|integer',
+                'capacite_max'   => 'required|integer',
+                'prix_journee'   => 'required|numeric',
+                'prix_soiree'    => 'required|numeric',
+                'photo'          => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            ]);
 
-        $path = $request->file('photo')->store('salles_photos', 'public');
+            if ($request->hasFile('photo')) {
+                $path = $request->file('photo')->store('salles_photos', 'public');
+                $validated['photo'] = $path;
+            }
 
-        $salle = Salle::create([
-            'prestataire_id' => $request->prestataire_id,
-            'nom_salle' => $request->nom_salle,
-            'adresse' => $request->adresse,
-            'ville' => $request->ville,
-            'capacite' => $request->capacite,
-            'prix_par_jour' => $request->prix_par_jour,
-            'description' => $request->description,
-            'photo_principale' => $path
-        ]);
+            // استعمال البيانات التي تم التحقق منها فقط
+            $salle = Salle::create($validated);
+            
+            return response()->json($salle, 201);
 
-        return response()->json(['message' => 'Salle ajoutée !', 'salle' => $salle]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
-    // 3. مسح صالة (Delete)
-    public function destroy($id) {
-        $salle = Salle::findOrFail($id);
-        Storage::disk('public')->delete($salle->photo_principale);
+   public function destroy($id)
+{
+    $salle = Salle::find($id);
+    if($salle) {
         $salle->delete();
-        return response()->json(['message' => 'Salle supprimée']);
+        return response()->json(['message' => 'Salle supprimée'], 200);
     }
+    return response()->json(['message' => 'Salle non trouvée'], 404);
+}
+    
 }

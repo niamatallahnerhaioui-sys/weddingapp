@@ -1,63 +1,122 @@
 import React, { useState } from 'react';
+import { Users, Upload } from 'lucide-react';
 import axios from 'axios';
-import { Upload, MapPin, Users, DollarSign } from 'lucide-react';
 
-const AddSalleForm = ({ prestataireId }) => {
-    const [file, setFile] = useState(null);
-    const [formData, setFormData] = useState({
-        nom_salle: '', ville: '', adresse: '', 
-        capacite: '', prix_par_jour: '', description: ''
+export default function AddSalleForm({ prestataireId, onBack, onSuccess }) {
+    const [salleData, setSalleData] = useState({
+        nom: '',
+        adresse: '',
+        ville: '',
+        capacite_min: '',
+        capacite_max: '',
+        prix_journee: '',
+        prix_soiree: '',
+        description: ''
     });
+    const [photo, setPhoto] = useState(null);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const data = new FormData();
-        Object.keys(formData).forEach(key => data.append(key, formData[key]));
-        data.append('photo', file);
-        data.append('prestataire_id', prestataireId);
-
-        try {
-            await axios.post('/api/salles', data, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            alert("Salle ajoutée avec succès !");
-        } catch (error) { alert("Erreur d'ajout"); }
+    const handleInputChange = (e) => {
+        setSalleData({ ...salleData, [e.target.name]: e.target.value });
     };
 
-    return (
-        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-3xl shadow-lg max-w-2xl mx-auto space-y-4">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Ajouter une nouvelle Salle</h2>
-            
-            <input name="nom_salle" placeholder="Nom de la salle" onChange={e => setFormData({...formData, nom_salle: e.target.value})} className="w-full p-3 border rounded-xl" required />
-            
-            <div className="grid grid-cols-2 gap-4">
-                <div className="relative"><MapPin className="absolute left-3 top-3 text-gray-400" size={18}/>
-                    <input name="ville" placeholder="Ville" onChange={e => setFormData({...formData, ville: e.target.value})} className="w-full pl-10 p-3 border rounded-xl" required />
-                </div>
-                <div className="relative"><Users className="absolute left-3 top-3 text-gray-400" size={18}/>
-                    <input name="capacite" type="number" placeholder="Capacité" onChange={e => setFormData({...formData, capacite: e.target.value})} className="w-full pl-10 p-3 border rounded-xl" required />
-                </div>
-            </div>
+    const handleFileChange = (e) => {
+        setPhoto(e.target.files[0]);
+    };
 
-            <div className="relative"><DollarSign className="absolute left-3 top-3 text-gray-400" size={18}/>
-                <input name="prix_par_jour" type="number" placeholder="Prix par jour (DH)" onChange={e => setFormData({...formData, prix_par_jour: e.target.value})} className="w-full pl-10 p-3 border rounded-xl" required />
-            </div>
+   const handleSubmit = async (e) => {
+    e.preventDefault();
+    const data = new FormData();
+    
+    // إضافة المعرف مباشرة
+    data.append('prestataire_id', prestataireId);
+    
+    // إضافة باقي الحقول
+    Object.keys(salleData).forEach(key => {
+        if (salleData[key] !== '') {
+            data.append(key, salleData[key]);
+        }
+    });
+    
+    if (photo) {
+        data.append('photo', photo);
+    }
 
-            <textarea name="description" placeholder="Description de la salle..." onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-3 border rounded-xl h-32"></textarea>
+    try {
+        const response = await axios.post('/api/salles', data, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
 
-            <div className="border-2 border-dashed border-pink-200 p-6 rounded-xl text-center">
-                <input type="file" onChange={e => setFile(e.target.files[0])} className="hidden" id="photo-upload" />
-                <label htmlFor="photo-upload" className="cursor-pointer flex flex-col items-center">
-                    <Upload className="text-pink-500 mb-2" />
-                    <span className="text-sm text-gray-500">{file ? file.name : "Télécharger la photo principale"}</span>
-                </label>
-            </div>
-
-            <button type="submit" className="w-full bg-pink-500 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-pink-600">
-                Publier la salle
-            </button>
-        </form>
-    );
+        if (response.status === 201 || response.status === 200) {
+            alert("Salle ajoutée avec succès !");
+            if (onSuccess) onSuccess(response.data);
+            if (onBack) onBack();
+        }
+    } catch (error) {
+        if (error.response && error.response.status === 422) {
+            // أخطاء الـ Validation من Laravel
+            console.log("Validation Errors:", error.response.data.errors);
+            alert("Erreur de validation: " + Object.values(error.response.data.errors).flat().join('\n'));
+        } else {
+            console.error("Server Error:", error.response?.data);
+            alert("Erreur: " + (error.response?.data?.error || "Problème de connexion au serveur."));
+        }
+    }
 };
 
-export default AddSalleForm;
+    return (
+        <div className="p-8 max-w-4xl mx-auto bg-white rounded-[2rem]">
+            <div className="mb-8">
+                <h2 className="text-3xl font-serif font-bold text-[#047857]">Détails de la Salle</h2>
+                <p className="text-gray-400">Configurez votre espace d'exception.</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nom de la salle</label>
+                    <input name="nom" onChange={handleInputChange} className="w-full p-4 border border-gray-100 rounded-2xl bg-gray-50 focus:ring-2 focus:ring-[#D4AF37] outline-none" required />
+                </div>
+
+                <div className="relative">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Ville</label>
+                    <input name="ville" onChange={handleInputChange} className="w-full p-4 border border-gray-100 rounded-2xl bg-gray-50 outline-none" required />
+                </div>
+                <div className="relative">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Adresse</label>
+                    <input name="adresse" onChange={handleInputChange} className="w-full p-4 border border-gray-100 rounded-2xl bg-gray-50 outline-none" required />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Capacité Min</label>
+                    <input name="capacite_min" type="number" onChange={handleInputChange} className="w-full p-4 border border-gray-100 rounded-2xl bg-gray-50 outline-none" required />
+                </div>
+                <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Capacité Max</label>
+                    <input name="capacite_max" type="number" onChange={handleInputChange} className="w-full p-4 border border-gray-100 rounded-2xl bg-gray-50 outline-none" required />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Prix Journée (DH)</label>
+                    <input name="prix_journee" type="number" onChange={handleInputChange} className="w-full p-4 border border-gray-100 rounded-2xl bg-gray-50 outline-none" required />
+                </div>
+                <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Prix Soirée (DH)</label>
+                    <input name="prix_soiree" type="number" onChange={handleInputChange} className="w-full p-4 border border-gray-100 rounded-2xl bg-gray-50 outline-none" required />
+                </div>
+
+                <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Photo</label>
+                    <div className="border-2 border-dashed border-gray-200 rounded-2xl p-6 flex flex-col items-center bg-gray-50 relative">
+                        <Upload className="text-gray-400 mb-2" size={32} />
+                        <span className="text-sm text-gray-500">{photo ? photo.name : "Upload photo"}</span>
+                        <input type="file" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
+                    </div>
+                </div>
+
+
+                <button type="submit" className="md:col-span-2 bg-[#047857] text-white py-5 rounded-2xl font-bold shadow-lg hover:bg-[#035e44] transition-all">
+                    Enregistrer la Salle
+                </button>
+            </form>
+        </div>
+    );
+}

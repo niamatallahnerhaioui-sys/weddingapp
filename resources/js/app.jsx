@@ -1,159 +1,175 @@
-import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom/client';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Store, User, Mail, Lock, MapPin, Phone, Briefcase, TextQuote } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { AnimatePresence, motion } from 'framer-motion';
+import ReactDOM from 'react-dom/client';
+import { 
+    LayoutDashboard, LogOut, PlusCircle, Utensils, 
+    User, Search, Menu, Heart, ChefHat, CheckCircle, TrendingUp 
+} from 'lucide-react'; 
+import React from 'react';
+import '../css/app.css';
 
-// تأكدي أن هاد المسار صحيح 100% في الملفات عندك
-import CoupleDashboard from './components/couplesDashboard'; 
-
+// استيراد المكونات
+import Home from './components/Home';
+import Login from './components/Login';
+import Register from './components/Register';
+import CouplesDashboard from './components/CouplesDashboard'; 
+import AddSalleForm from './components/SalleForm';
+import AddFormuleForm from './components/FormuleForm';
+import FormuleList from './components/FormuleList'; 
+import SalleList from './components/SalleList';
+import Profile from './components/Profile';
+import BudgetEstimator from './components/BudgetEstimator'; 
+import { TraiteursPage } from './components/TraiteursPage';
+import AdminDashboard from './components/AdminDashboard';
 function App() {
     const [user, setUser] = useState(null);
-    const [view, setView] = useState('login'); // صفحة البداية
-    const [role, setRole] = useState('couple');
-    const [userId, setUserId] = useState(null);
-    const [formData, setFormData] = useState({
-        nom: '', prenom: '', email: '', password: '', ville: '',
-        nom_commercial: '', type_service: '', telephone: '', description: ''
-    });
+    const [view, setView] = useState('home');
+    const [adminSubView, setAdminSubView] = useState('stats'); // للحالات داخل الـ Admin
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+    const handleLogout = () => {
+        setUser(null);
+        setView('home');
+        localStorage.clear();
     };
 
-    const handleRegister = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await axios.post('/api/register', { ...formData, role });
-            alert(res.data.message);
-            setView('login');
-        } catch (error) {
-            const errorData = error.response?.data;
-            if (errorData?.errors) {
-                alert("Erreur: " + Object.values(errorData.errors)[0][0]);
-            } else {
-                alert("Erreur: " + (errorData?.message || "Problème de connexion"));
-            }
+    // دالة النجاح في الدخول الموحدة
+    const handleLoginSuccess = (userData, userRole) => {
+        setUser(userData);
+        if (userData.prestataire) {
+            localStorage.setItem('prestataire_id', userData.prestataire.id);
+            localStorage.setItem('user_type', userData.prestataire.type);
+        }
+        
+        // التوجيه الذكي حسب الـ Role
+        if (userRole === 'admin') {
+            setView('admin_dashboard');
+        } else if (userRole === 'couple') {
+            setView('couple_dashboard');
+        } else {
+            setView('prestataire_dashboard');
         }
     };
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await axios.post('/api/login', { 
-                email: formData.email, 
-                password: formData.password 
-            });
-            setUser(res.data.user);
-            setUserId(res.data.user.id);
-            
-            if (res.data.role === 'couple') {
-                setView('couple_dashboard');
-            } else {
-                // إذا كان ممون ومازال ما كمل بروفايله
-                setView('complete'); 
-            }
-        } catch (error) { 
-            alert("Email أو كلمة السر خطأ"); 
-        }
-    };
+    const prestataireType = user?.prestataire?.type;
+    const isPublicPage = view === 'home' || view === 'login' || view === 'register' || view === 'traiteurs';
 
-    const handleComplete = async (e) => {
-        e.preventDefault();
-        try {
-            await axios.post('/api/complete-profile', {
-                user_id: userId,
-                nom_commercial: formData.nom_commercial,
-                type_service: formData.type_service,
-                telephone: formData.telephone,
-                description: formData.description
-            });
-            alert("Profil complété avec succès !");
-            window.location.reload(); 
-        } catch (error) {
-            alert("Erreur lors de la mise à jour");
-        }
-    };
-
-    // --- الـ RETURN الواحد والوحيد ---
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4">
-            <AnimatePresence mode="wait">
-                
-                {/* 1. واجهة الـ Dashboard للـ Couple */}
-                {view === 'couple_dashboard' && user && (
-                    <motion.div key="dashboard" initial={{opacity:0}} animate={{opacity:1}} className="w-full h-full">
-                        <CoupleDashboard user={user} />
-                    </motion.div>
-                )}
+        <div className="min-h-screen bg-[#FAFAFA] font-sans text-gray-800 flex flex-col">
 
-                {/* 2. واجهة الـ Register */}
-                {view === 'register' && (
-                    <motion.div key="reg" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="bg-white rounded-[2.5rem] shadow-2xl flex max-w-4xl w-full overflow-hidden min-h-[600px]">
-                        <div className="hidden md:flex w-1/2 bg-pink-500 text-white p-12 flex-col justify-center items-center">
-                            <h2 className="text-3xl font-bold mb-4 text-center">Rejoignez-nous</h2>
-                            <p className="text-center">Le début de votre belle aventure commence ici.</p>
-                        </div>
-                        <div className="w-full md:w-1/2 p-10">
-                            <h1 className="text-2xl font-bold mb-6 text-center">Inscription</h1>
-                            <div className="flex bg-gray-100 p-1 rounded-xl mb-6 relative cursor-pointer">
-                                <motion.div animate={{ x: role === 'couple' ? '0%' : '100%' }} className="absolute bg-white shadow w-1/2 h-[85%] rounded-lg top-1 left-0" />
-                                <button onClick={() => setRole('couple')} className="z-10 w-1/2 py-2">Couple</button>
-                                <button onClick={() => setRole('prestataire')} className="z-10 w-1/2 py-2">Prestataire</button>
-                            </div>
-                            <form onSubmit={handleRegister} className="space-y-4">
-                                <div className="flex gap-2">
-                                    <input name="prenom" placeholder="Prénom" onChange={handleChange} required className="w-1/2 p-3 border rounded-xl" />
-                                    <input name="nom" placeholder="Nom" onChange={handleChange} required className="w-1/2 p-3 border rounded-xl" />
+            {/* --- 1. Navigation Bar العامة --- */}
+            {isPublicPage && (
+                <nav className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-[100] h-20 py-4 px-6 md:px-12 flex justify-between items-center border-b border-gray-50 flex-shrink-0">
+                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('home')}>
+                        <span className="text-2xl"></span>
+                        <h1 className="text-xl font-serif font-bold text-[#047857] italic">Elite Wedding</h1>
+                    </div>
+                    
+                    <div className="hidden md:flex items-center gap-8 text-sm font-bold text-gray-500 uppercase tracking-widest">
+                        <button onClick={() => setView('home')} className={`hover:text-[#047857] transition ${view === 'home' ? 'text-[#047857]' : ''}`}>Accueil</button>
+                        <button onClick={() => setView('login')} className="hover:text-[#047857] transition">Salles</button>
+                        <button onClick={() => setView('traiteurs')} className={`hover:text-[#047857] transition ${view === 'traiteurs' ? 'text-[#047857]' : ''}`}>Traiteurs</button>
+                        <button onClick={() => setView('login')} className="hover:text-[#047857] transition">Packs</button>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => setView('register')} className="bg-[#047857] text-white px-6 py-2 rounded-full font-bold text-sm shadow-md hover:bg-[#035e44] transition flex items-center gap-2">
+                            <User size={16} /> Espace Pro
+                        </button>
+                    </div>
+                </nav>
+            )}
+
+            {/* --- 2. محتوى الصفحة الرئيسي --- */}
+            <div className="flex flex-1 overflow-hidden relative">
+                <AnimatePresence mode="wait">
+
+                    {/* A. واجهات الزوار العامة */}
+                    {isPublicPage && (
+                        <motion.div key={view} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full overflow-y-auto">
+                            {view === 'home' && <Home onStart={() => setView('login')} />}
+                            {view === 'traiteurs' && <TraiteursPage onNavigate={(p) => setView(p === 'accueil' ? 'home' : 'login')} />}
+                            {view === 'login' && <Login onLoginSuccess={handleLoginSuccess} onSwitchToRegister={() => setView('register')} />}
+                            {view === 'register' && <Register onRegisterSuccess={() => setView('login')} onSwitchToLogin={() => setView('login')} />}
+                        </motion.div>
+                    )}
+
+                    {/* B. واجهة الـ Admin الجديدة (Elite Admin Panel) */}
+                  {view === 'admin_dashboard' && user && (
+    <AdminDashboard user={user} onLogout={handleLogout} />
+)}
+
+                    {/* C. واجهة الداشبورد (Prestataire) */}
+                    {(view === 'prestataire_dashboard' || view === 'profile') && (
+                        <motion.div key="prestataire" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex w-full h-full overflow-hidden">
+                            <aside className="w-64 bg-white border-r p-6 flex flex-col shadow-sm h-full flex-shrink-0 z-20">
+                                <h2 className="text-xl font-serif font-bold text-[#047857] mb-10 italic text-center text-left">Elite Admin</h2>
+                                <nav className="space-y-4 flex-1">
+                                    <button onClick={() => setView('prestataire_dashboard')} className={`w-full text-left p-3 rounded-xl font-medium flex items-center gap-2 transition ${view === 'prestataire_dashboard' ? 'bg-emerald-50 text-[#047857]' : 'text-gray-400 hover:bg-gray-50'}`}>
+                                        <LayoutDashboard size={18}/> Dashboard
+                                    </button>
+                                    <button onClick={() => setView('profile')} className={`w-full text-left p-3 rounded-xl font-medium flex items-center gap-2 transition ${view === 'profile' ? 'bg-emerald-50 text-[#047857]' : 'text-gray-400 hover:bg-gray-50'}`}>
+                                        <User size={18}/> Mon Profil
+                                    </button>
+                                    <hr className="border-gray-100" />
+                                    <button onClick={() => setView(prestataireType === 'traiteur' ? 'add_formule' : 'add_salle')} className="w-full text-left p-3 text-gray-400 hover:bg-emerald-50 hover:text-[#047857] rounded-xl transition flex items-center gap-2 text-left">
+                                        <PlusCircle size={18}/> {prestataireType === 'traiteur' ? 'Ajouter Formule' : 'Ajouter Salle'}
+                                    </button>
+                                </nav>
+                                <button onClick={handleLogout} className="p-3 text-red-400 hover:bg-red-50 rounded-xl mt-auto text-left font-bold flex items-center gap-2 border-t pt-4">
+                                    <LogOut size={18}/> Déconnexion
+                                </button>
+                            </aside>
+
+                            <main className="flex-1 p-10 bg-[#FAFAFA] overflow-y-auto text-left">
+                                <div className="max-w-5xl mx-auto">
+                                    {view === 'prestataire_dashboard' && (
+                                        <>
+                                            <header className="mb-10">
+                                                <h2 className="text-3xl font-bold italic text-gray-800 tracking-tight">Bienvenue, <span className="text-[#047857] font-serif">{user?.prenom}</span></h2>
+                                                <p className="text-gray-400 font-medium capitalize mt-1 border-l-4 border-[#D4AF37] pl-3 italic">Espace {prestataireType}</p>
+                                            </header>
+                                            <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100">
+                                                {prestataireType === 'traiteur' ? <FormuleList prestataireId={localStorage.getItem('prestataire_id')} /> : <SalleList prestataireId={localStorage.getItem('prestataire_id')} />}
+                                            </div>
+                                        </>
+                                    )}
+                                    {view === 'profile' && <Profile user={user} />}
                                 </div>
-                                <input name="email" type="email" placeholder="Email" onChange={handleChange} required className="w-full p-3 border rounded-xl" />
-                                <input name="ville" placeholder="Ville" onChange={handleChange} required className="w-full p-3 border rounded-xl" />
-                                <input name="password" type="password" placeholder="Mot de passe" onChange={handleChange} required className="w-full p-3 border rounded-xl" />
-                                <button type="submit" className="w-full bg-pink-500 text-white py-3 rounded-xl font-bold">S'inscrire</button>
-                                <p className="text-center text-sm mt-2">Déjà un compte ? <span onClick={() => setView('login')} className="text-pink-600 cursor-pointer font-bold">Se connecter</span></p>
-                            </form>
-                        </div>
-                    </motion.div>
-                )}
+                            </main>
+                        </motion.div>
+                    )}
 
-                {/* 3. واجهة الـ Login */}
-                {view === 'login' && (
-                    <motion.div key="log" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md">
-                        <h1 className="text-2xl font-bold mb-6 text-center text-purple-700 font-serif">Connexion</h1>
-                        <form onSubmit={handleLogin} className="space-y-4">
-                            <div className="relative"><Mail className="absolute left-3 top-3.5 text-gray-400" size={18}/><input name="email" type="email" placeholder="Email" onChange={handleChange} className="w-full pl-10 p-3 bg-gray-50 border rounded-xl" required /></div>
-                            <div className="relative"><Lock className="absolute left-3 top-3.5 text-gray-400" size={18}/><input name="password" type="password" placeholder="Mot de passe" onChange={handleChange} className="w-full pl-10 p-3 bg-gray-50 border rounded-xl" required /></div>
-                            <button type="submit" className="w-full bg-purple-600 text-white py-3 rounded-xl font-bold shadow-lg">Se connecter</button>
-                            <p className="text-center text-sm mt-4">Nouveau ? <span onClick={() => setView('register')} className="text-purple-600 cursor-pointer font-bold">Créer un compte</span></p>
-                        </form>
-                    </motion.div>
-                )}
+                    {/* D. واجهة الكوبل */}
+                    {view === 'couple_dashboard' && (
+                        <motion.div key="couple" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full overflow-hidden">
+                            <CouplesDashboard user={user} onLogout={handleLogout} />
+                        </motion.div>
+                    )}
 
-                {/* 4. واجهة إكمال البروفايل للممون */}
-                {view === 'complete' && (
-                    <motion.div key="comp" initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} className="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-lg border-t-8 border-pink-500">
-                        <h1 className="text-2xl font-bold mb-2 text-gray-800">Complétez votre profil Pro</h1>
-                        <form onSubmit={handleComplete} className="space-y-4">
-                            <div className="relative"><Briefcase className="absolute left-3 top-3.5 text-gray-400" size={18}/><input name="nom_commercial" placeholder="Nom de l'entreprise" onChange={handleChange} required className="w-full pl-10 p-3 bg-gray-50 border rounded-xl" /></div>
-                            <div className="relative"><Store className="absolute left-3 top-3.5 text-gray-400" size={18}/>
-                                <select name="type_service" onChange={handleChange} required className="w-full pl-10 p-3 bg-gray-50 border rounded-xl">
-                                    <option value="">Type de Service</option>
-                                    <option value="salle">Salle de fête</option>
-                                    <option value="traiteur">Traiteur</option>
-                                    <option value="photographe">Photographe</option>
-                                </select>
+                    {/* E. واجهات الإضافة */}
+                    {(view === 'add_salle' || view === 'add_formule') && (
+                        <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="w-full min-h-full bg-gray-50 p-10 overflow-y-auto">
+                            <div className="max-w-4xl mx-auto">
+                                <button onClick={() => setView('prestataire_dashboard')} className="mb-6 text-[#047857] font-bold flex items-center gap-2 hover:underline bg-white px-5 py-2 rounded-full shadow-sm shadow-emerald-900/5 text-left">
+                                    ← Retour au Dashboard
+                                </button>
+                                <div className="bg-white rounded-[3rem] shadow-xl border border-gray-100 overflow-hidden text-left">
+                                    {view === 'add_salle' ? <AddSalleForm prestataireId={localStorage.getItem('prestataire_id')} /> : <AddFormuleForm prestataireId={localStorage.getItem('prestataire_id')} />}
+                                </div>
                             </div>
-                            <div className="relative"><Phone className="absolute left-3 top-3.5 text-gray-400" size={18}/><input name="telephone" placeholder="Téléphone" onChange={handleChange} required className="w-full pl-10 p-3 bg-gray-50 border rounded-xl" /></div>
-                            <textarea name="description" placeholder="Description..." onChange={handleChange} className="w-full p-3 bg-gray-50 border rounded-xl h-24"></textarea>
-                            <button type="submit" className="w-full bg-pink-500 text-white py-4 rounded-xl font-bold shadow-xl">Enregistrer</button>
-                        </form>
-                    </motion.div>
-                )}
+                        </motion.div>
+                    )}
 
-            </AnimatePresence>
+                </AnimatePresence>
+            </div>
         </div>
     );
 }
 
-const root = ReactDOM.createRoot(document.getElementById('app'));
-root.render(<App />);
+const root = document.getElementById('app');
+if (root) {
+    ReactDOM.createRoot(root).render(<App />);
+}
+
+export default App;

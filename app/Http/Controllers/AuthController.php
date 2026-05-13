@@ -9,17 +9,23 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
     public function register(Request $request) {
         $validator = Validator::make($request->all(), [
-            'nom' => 'required|string',
-            'prenom' => 'required|string',
-            'email' => 'required|email',
-            'password' => 'required|min:4',
-            'role' => 'required',
-            'ville' => 'required'
+            'nom' => 'required|string|max:50',
+            'prenom' => 'required|string|max:50',
+            'email' => 'required|email|unique:users,email',
+            'password' => ['required', Password::min(4)], 
+            'role' => 'required|in:couple,prestataire,admin',
+            'ville' => 'required|string',
+            
+            // الحقول الخاصة بالبريستاتير إجبارية فقط إذا كان الدور prestataire
+            'type' => 'required_if:role,prestataire|string',
+            'telephone' => 'required_if:role,prestataire|string|max:15',
+            'nom_commercial' => 'required_if:role,prestataire|string|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -30,52 +36,77 @@ class AuthController extends Controller
             DB::beginTransaction();
 
             $user = User::create([
-                'nom' => $request->nom,
-                'prenom' => $request->prenom,
+                'nom' => strip_tags($request->nom),
+                'prenom' => strip_tags($request->prenom),
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'role' => $request->role,
+                'role' => $request->role, 
                 'ville' => $request->ville,
             ]);
 
-            if ($request->role === 'prestataire') {
-                Prestataire::create([
-                    'user_id' => $user->id,
-                    'ville' => $request->ville,
-                ]);
-            }
+            // إنشاء سجل prestataire فقط إذا كان المستخدم من هذا النوع
+           // داخل AuthController.php
+if ($user->role === 'prestataire') {
+    Prestataire::create([
+        'user_id' => $user->id,
+        'type' => $request->type,
+        'nom' => $request->nom_commercial, // إيلا كان الحقل في DB سميتو nom
+        // 'nom_commercial' => $request->nom_commercial, // إيلا كان الحقل في DB سميتو nom_commercial
+        'ville' => $request->ville,
+        'telephone' => $request->telephone,
+        'statut_verifi' => 0, 
+    ]);
+}
 
             DB::commit();
-            return response()->json(['message' => 'Compte créé avec succès !'], 201);
+            return response()->json(['message' => 'Compte créé avec succès !', 'user' => $user], 201);
 
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json(['message' => 'Erreur serveur', 'error' => $e->getMessage()], 500);
+            \Log::error("Registration Error: " . $e->getMessage());
+            return response()->json(['message' => 'Une erreur est survenue.'], 500); 
         }
     }
-public function login(Request $request) {
-    $credentials = $request->only('email', 'password');
 
-    if (Auth::attempt($credentials)) {
-        $user = Auth::user();
-        return response()->json([
-            'status' => 'success',
-            'user' => $user,
-            'role' => $user->role // نرسل الـ Role لنعرف أي Dashboard سنفتح
+    public function login(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required',
         ]);
-    }
-    return response()->json(['message' => 'Email ou mot de passe incorrect'], 401);
-}
 
-    public function completeProfile(Request $request) {
-        $prestataire = Prestataire::where('user_id', $request->user_id)->first();
-        
-        if ($prestataire) {
-            $prestataire->update($request->only([
-                'nom_commercial', 'type_service', 'telephone', 'description'
-            ]));
-            return response()->json(['message' => 'Profil complété !']);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
         }
-        return response()->json(['message' => 'Prestataire non trouvé'], 404);
+
+        $credentials = $request->only('email', 'password');
+
+        if (Auth::attempt($credentials)) {
+            // تحميل علاقة الـ prestataire
+            $user = User::with('prestataire')->find(Auth::id());
+
+            return response()->json([
+                'status' => 'success',
+                'user' => $user,
+                'role' => $user->role 
+            ]);
+        }
+
+        return response()->json(['message' => 'Identifiants incorrects'], 401);
+    }
+
+    // هاد الدالة اختيارية إذا بغيتي تبدلي المعلومات من بعد
+    public function completeProfile(Request $request) {
+        $prestataire = Prestataire::where('user_id', Auth::id())->first();
+        if ($prestataire) {
+            $data = $request->validate([
+                'nom' => 'sometimes|string',
+                'description' => 'sometimes|string',
+                'telephone' => 'sometimes|string',
+                'type' => 'sometimes|string'
+            ]);
+            $prestataire->update($data);
+            return response()->json(['message' => 'Profil mis à jour !']);
+        }
+        return response()->json(['message' => 'Profil non trouvé'], 404);
     }
 }

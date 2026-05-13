@@ -1,6 +1,6 @@
 export default {
   plugins: {
-    '@tailwindcss/postcss': {},
+    '@tailwindcss/postcss': {}, // هادي هي السمية الجديدة اللي طالب ليك الخطأ
     autoprefixer: {},
   },
 }

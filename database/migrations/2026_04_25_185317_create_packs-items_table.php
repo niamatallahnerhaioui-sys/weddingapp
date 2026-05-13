@@ -23,8 +23,13 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void
-    {
-        //
-    }
+    public function down()
+{
+    Schema::table('packs_items', function (Blueprint $table) {
+        // كنحيدو الارتباط أولاً
+        $table->dropForeign(['pack_id']); 
+    });
+    // عاد كنمسحو الجدول
+    Schema::dropIfExists('packs_items');
+}
 };
