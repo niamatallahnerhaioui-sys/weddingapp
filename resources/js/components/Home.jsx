@@ -1,150 +1,192 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Search, MapPin, Users, Star, CheckCircle, ShieldCheck, Heart } from 'lucide-react';
-import heroImage from '../assets/hero-bg.jpg';
-import BudgetEstimator from './BudgetEstimator';
 
-const Home = ({ onStart }) => {
-    const [ville, setVille] = useState('');
-    const villesMaroc = ["Casablanca", "Rabat", "Marrakech", "Tanger", "Agadir", "Fès", "Safi"];
+// استيراد الصور من مجلد assets
+import heroImage from '../assets/hero-bg.jpg'; 
+import imageSalles from '../assets/image-salles.jpg'; 
+import imageTable from '../assets/image-table.jpg'; 
+import imagePhoto from '../assets/image-photo.jpg'; 
 
+const Home = ({ onStart, setView, view }) => {
     return (
-        <div className="min-h-screen bg-white font-sans text-gray-800">
+        /* حماية الصفحة كاملة من أي خروج أفقي */
+        <div className="w-full min-h-screen bg-[#F9F7F2] font-sans text-stone-800 selection:bg-[#D4AF37]/30 overflow-x-hidden">
             
-            {/* --- Hero Section --- */}
+            {/* --- Navigation Bar --- */}
+            <nav className="absolute top-0 left-0 w-full z-50 px-6 md:px-12 flex justify-between items-center bg-transparent py-6 box-border">
+                
+                {/* 1. اللوغو جهة اليسار */}
+                <div className="flex items-center cursor-pointer flex-shrink-0" onClick={() => setView?.('home')}>
+                    <h1 className="text-xl md:text-2xl font-serif font-black tracking-[0.2em] text-[#0A2A22] uppercase italic" style={{ fontFamily: "'Playfair Display', serif" }}>
+                        OURS
+                    </h1>
+                </div>
+                
+                {/* 2. الروابط في الوسط */}
+                <div className="flex items-center gap-6 md:gap-12 lg:gap-16 text-xs md:text-sm font-serif font-semibold italic tracking-[0.15em] uppercase flex-nowrap" style={{ fontFamily: "'Playfair Display', serif" }}>
+                    <button 
+                        onClick={() => setView?.('budget_estimator')} 
+                        className="bg-transparent border-none p-0 cursor-pointer text-[#0A2A22] hover:text-[#D4AF37] transition duration-300 focus:outline-none whitespace-nowrap"
+                    >
+                        Budget Estimator
+                    </button>
+                    <button 
+                        onClick={() => setView?.('marketplace')} 
+                        className="bg-transparent border-none p-0 cursor-pointer text-[#0A2A22] hover:text-[#D4AF37] transition duration-300 focus:outline-none whitespace-nowrap"
+                    >
+                        Marketplace
+                    </button>
+                    <button 
+                        onClick={() => setView?.('login')} 
+                        className="bg-transparent border-none p-0 cursor-pointer text-[#0A2A22] hover:text-[#D4AF37] transition duration-300 focus:outline-none whitespace-nowrap"
+                    >
+                        Packs
+                    </button>
+                </div>
+
+                {/* 3. زر Espace Pro جهة اليمين */}
+                <div className="flex items-center flex-shrink-0">
+                    <button 
+                        onClick={() => setView?.('login')} 
+                        className="bg-[#D4AF37] text-[#0A2A22] text-[10px] md:text-xs font-semibold uppercase tracking-[0.15em] px-4 py-2.5 md:px-6 md:py-3 rounded-full hover:bg-[#bfa032] transition-all shadow-lg active:scale-95 whitespace-nowrap"
+                    >
+                        Espace Pro
+                    </button>
+                </div>
+            </nav>
+
+            {/* --- 1. Hero Section --- */}
             <section 
-                className="relative min-h-[800px] flex items-center justify-center bg-cover bg-center py-20"
+                className="relative h-screen w-full flex items-center justify-center bg-cover bg-center mb-40"
                 style={{
-                    backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${heroImage})`
+                    backgroundImage: `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.25)), url(${heroImage})`
                 }}
             >
-                <div className="text-center text-white px-4 max-w-6xl z-10 flex flex-col items-center">
+                <div className="text-center text-white px-4 z-10 flex flex-col items-center mt-16">
                     <motion.h1 
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-5xl md:text-7xl font-serif font-bold mb-8 italic leading-tight"
+                        transition={{ duration: 1 }}
+                        className="text-4xl md:text-6xl font-serif text-[#0A2A22] mb-12 tracking-wide italic"
+                        style={{ fontFamily: "'Playfair Display', serif" }}
                     >
-                        Elite Wedding Maroc
+                        L'ART DE CÉLÉBRER VOTRE UNION
                     </motion.h1>
                     
-                    <motion.p 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="text-xl md:text-2xl mb-16 font-light tracking-widest max-w-3xl"
+                    <motion.button 
+                        onClick={() => setView?.('register')}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.6, duration: 0.8 }}
+                        className="bg-[#D4AF37] text-[#0A2A22] text-xs font-semibold uppercase tracking-[0.2em] px-10 py-4 rounded-full hover:bg-[#bfa032] transition-all shadow-lg active:scale-95"
                     >
-                        L'élégance et l'excellence pour votre grand jour
-                    </motion.p>
-
-                    {/* Search Bar: تم تصحيح التقسيم لضمان عدم التداخل */}
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4 }}
-                        className="bg-white/95 backdrop-blur-md rounded-[2.5rem] shadow-2xl p-6 md:p-8 w-full max-w-5xl border border-white/20 mx-auto"
-                    >
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
-                            
-                            <div className="flex flex-col gap-2 text-left">
-                                <label className="text-[10px] font-black text-[#047857] uppercase tracking-widest ml-4">Localisation</label>
-                                <div className="relative">
-                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D4AF37]" />
-                                    <select
-                                        value={ville}
-                                        onChange={(e) => setVille(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl text-gray-700 focus:ring-2 focus:ring-[#047857] shadow-inner transition-all appearance-none"
-                                    >
-                                        <option value="">Ville</option>
-                                        {villesMaroc.map((v) => <option key={v} value={v}>{v}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col gap-2 text-left">
-                                <label className="text-[10px] font-black text-[#047857] uppercase tracking-widest ml-4">Nombre d'invités</label>
-                                <div className="relative">
-                                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D4AF37]" />
-                                    <input
-                                        type="number"
-                                        placeholder="0"
-                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl text-gray-700 focus:ring-2 focus:ring-[#047857] shadow-inner transition-all"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col gap-2 text-left">
-                                <label className="text-[10px] font-black text-[#047857] uppercase tracking-widest ml-4">Budget Max</label>
-                                <div className="relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#D4AF37] font-bold text-xs">MAD</span>
-                                    <input
-                                        type="number"
-                                        placeholder="100 000"
-                                        className="w-full pl-14 pr-4 py-4 bg-gray-50 border-none rounded-2xl text-gray-700 focus:ring-2 focus:ring-[#047857] shadow-inner transition-all"
-                                    />
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={onStart}
-                                className="bg-[#047857] text-white py-4 rounded-2xl hover:bg-[#035e44] hover:-translate-y-1 transition-all flex items-center justify-center space-x-3 font-bold shadow-xl shadow-emerald-900/20 active:scale-95 w-full"
-                            >
-                                <Search className="w-5 h-5" />
-                                <span className="uppercase tracking-widest text-sm">Explorer</span>
-                            </button>
-                        </div>
-                    </motion.div>
+                        Découvrir l'expérience Aura
+                    </motion.button>
                 </div>
             </section>
 
-            {/* --- Budget Estimator Section --- */}
-            <section className="py-32 bg-gray-50 relative overflow-hidden">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl font-serif font-bold text-gray-800 italic">Planifiez votre budget</h2>
-                        <p className="text-gray-500 mt-3 font-medium">Répartition intelligente basée sur nos packs exclusifs</p>
-                        <div className="h-1 w-24 bg-[#D4AF37] mx-auto mt-6 rounded-full"></div>
+            {/* --- 2. Editorial Content Section --- */}
+            <section className="max-w-6xl mx-auto px-12 py-20 flex flex-col space-y-40">
+                
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center w-full">
+                    <div className="md:col-span-5 flex justify-start">
+                        <motion.div 
+                            initial={{ opacity: 0, x: -30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
+                            className="w-[320px] h-[320px] bg-stone-200 overflow-hidden shadow-md flex-shrink-0"
+                        >
+                            <img src={imageSalles} alt="Salles Majestueuses" className="w-full h-full object-cover" />
+                        </motion.div>
                     </div>
-                    <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-stone-100">
-                        <BudgetEstimator />
+                    
+                    <div className="hidden md:block md:col-span-1"></div>
+                    
+                    <div className="md:col-span-6 flex flex-col justify-center pt-4 max-w-md">
+                        <motion.div
+                            initial={{ opacity: 0, x: 30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                            className="space-y-4 text-left"
+                        >
+                            <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#D4AF37]">L'Élite des Prestataires</h2>
+                            <p className="text-[13px] leading-relaxed tracking-wide text-justify font-light uppercase text-stone-600/90 leading-[1.8em]">
+                                Corporate / Nous avons ausgewählt pour vous les prestataires les plus prestigieux du Royaume. Des salles majestueuses aux traiteurs raffinés, chaque detail est validé par nos soins pour garantir l'excellence de votre union.
+                            </p>
+                        </motion.div>
                     </div>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center w-full">
+                    <div className="md:col-span-6 flex flex-col justify-center pt-4 max-w-md order-2 md:order-1">
+                        <motion.div
+                            initial={{ opacity: 0, x: -30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                            className="space-y-4 text-left"
+                        >
+                            <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#D4AF37]">Organisation Sur-Mesure</h2>
+                            <p className="text-[13px] leading-relaxed tracking-wide text-justify font-light uppercase text-stone-600/90 leading-[1.8em]">
+                                Nous avons sélectionné pour vous les prestataires les plus prestigieux du Royaume. Des salles majestueuses aux traiteurs raffinés, chaque détail est validé by nos soins pour garantir l'excellence de votre union.
+                            </p>
+                        </motion.div>
+                    </div>
+                    
+                    <div className="hidden md:block md:col-span-1 order-2"></div>
+                    
+                    <div className="md:col-span-5 flex justify-end order-1 md:order-3">
+                        <motion.div 
+                            initial={{ opacity: 0, x: 30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
+                            className="w-[350px] h-[240px] bg-stone-200 overflow-hidden shadow-md flex-shrink-0"
+                        >
+                            <img src={imageTable} alt="Dîner d'exception" className="w-full h-full object-cover" />
+                        </motion.div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center w-full">
+                    <div className="md:col-span-5 flex justify-start">
+                        <motion.div 
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
+                            className="w-[270px] h-[360px] bg-stone-200 overflow-hidden shadow-md flex-shrink-0"
+                        >
+                            <img src={imagePhoto} alt="Capture de souvenirs" className="w-full h-full object-cover" />
+                        </motion.div>
+                    </div>
+                    
+                    <div className="hidden md:block md:col-span-1"></div>
+                    
+                    <div className="md:col-span-6 flex flex-col justify-center pt-12 max-w-md">
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                            className="text-left"
+                        >
+                            <blockquote className="text-base md:text-lg font-serif italic text-[#D4AF37] border-l-2 border-[#D4AF37] pl-4 py-1 block mb-2 font-light leading-[1.6em]" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                “L'INTELLIGENCE AU SERVICE DE VOTRE RÊVE”
+                            </blockquote>
+                            <p className="text-[10px] text-stone-400 tracking-[0.2em] uppercase font-medium pl-4">Aura WeddingBot IA</p>
+                        </motion.div>
+                    </div>
+                </div>
+
             </section>
 
-            {/* --- Pourquoi Nous Section --- */}
-            <section className="bg-emerald-50/50 py-24">
-                <div className="max-w-7xl mx-auto px-4">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-                        <div className="text-center group">
-                            <div className="bg-white w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:bg-[#047857] group-hover:text-white transition-all">
-                                <Search size={32} className="text-[#047857] group-hover:text-white" />
-                            </div>
-                            <h3 className="text-lg font-bold mb-2">Recherche Facile</h3>
-                            <p className="text-gray-500 text-sm">Filtrez par ville et budget.</p>
-                        </div>
-                        <div className="text-center group">
-                            <div className="bg-white w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:bg-[#047857] group-hover:text-white transition-all">
-                                <ShieldCheck size={32} className="text-[#047857] group-hover:text-white" />
-                            </div>
-                            <h3 className="text-lg font-bold mb-2">Vérifié</h3>
-                            <p className="text-gray-500 text-sm">Prestataires certifiés Elite.</p>
-                        </div>
-                        <div className="text-center group">
-                            <div className="bg-white w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:bg-[#047857] group-hover:text-white transition-all">
-                                <Star size={32} className="text-[#D4AF37]" />
-                            </div>
-                            <h3 className="text-lg font-bold mb-2">Packs Exclusifs</h3>
-                            <p className="text-gray-500 text-sm">Économisez jusqu'à 30%.</p>
-                        </div>
-                        <div className="text-center group">
-                            <div className="bg-white w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:bg-[#047857] group-hover:text-white transition-all">
-                                <Heart size={32} className="text-rose-400" />
-                            </div>
-                            <h3 className="text-lg font-bold mb-2">Accompagnement</h3>
-                            <p className="text-gray-500 text-sm">Un conseiller IA 24/7.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            {/* الأيقونة العائمة */}
+            <div className="fixed bottom-8 right-8 bg-[#D4AF37]/10 p-3 rounded-full border border-[#D4AF37]/30 backdrop-blur-sm shadow-sm z-30">
+                <span className="text-[#D4AF37] text-xl">👑</span>
+            </div>
         </div>
     );
 };

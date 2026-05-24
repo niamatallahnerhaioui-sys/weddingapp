@@ -21,8 +21,6 @@ class AuthController extends Controller
             'password' => ['required', Password::min(4)], 
             'role' => 'required|in:couple,prestataire,admin',
             'ville' => 'required|string',
-            
-            // الحقول الخاصة بالبريستاتير إجبارية فقط إذا كان الدور prestataire
             'type' => 'required_if:role,prestataire|string',
             'telephone' => 'required_if:role,prestataire|string|max:15',
             'nom_commercial' => 'required_if:role,prestataire|string|max:100',
@@ -44,19 +42,16 @@ class AuthController extends Controller
                 'ville' => $request->ville,
             ]);
 
-            // إنشاء سجل prestataire فقط إذا كان المستخدم من هذا النوع
-           // داخل AuthController.php
-if ($user->role === 'prestataire') {
-    Prestataire::create([
-        'user_id' => $user->id,
-        'type' => $request->type,
-        'nom' => $request->nom_commercial, // إيلا كان الحقل في DB سميتو nom
-        // 'nom_commercial' => $request->nom_commercial, // إيلا كان الحقل في DB سميتو nom_commercial
-        'ville' => $request->ville,
-        'telephone' => $request->telephone,
-        'statut_verifi' => 0, 
-    ]);
-}
+            if ($user->role === 'prestataire') {
+                Prestataire::create([
+                    'user_id' => $user->id,
+                    'type' => $request->type,
+                    'nom' => $request->nom_commercial, 
+                    'ville' => $request->ville,
+                    'telephone' => $request->telephone,
+                    'statut_verifi' => 0, 
+                ]);
+            }
 
             DB::commit();
             return response()->json(['message' => 'Compte créé avec succès !', 'user' => $user], 201);
@@ -81,20 +76,22 @@ if ($user->role === 'prestataire') {
         $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
-            // تحميل علاقة الـ prestataire
             $user = User::with('prestataire')->find(Auth::id());
+
+            // 🔥 السطر السحري المصلح: إنتاج التوكن الفعلي للمستخدم عبر Sanctum
+            $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
                 'status' => 'success',
                 'user' => $user,
-                'role' => $user->role 
+                'role' => $user->role,
+                'token' => $token // تم تمريره بنجاح للـ React
             ]);
         }
 
         return response()->json(['message' => 'Identifiants incorrects'], 401);
     }
 
-    // هاد الدالة اختيارية إذا بغيتي تبدلي المعلومات من بعد
     public function completeProfile(Request $request) {
         $prestataire = Prestataire::where('user_id', Auth::id())->first();
         if ($prestataire) {

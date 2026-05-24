@@ -36,14 +36,17 @@ return [
     | Supported: "session"
     |
     */
-
-    'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
+'guards' => [
+    'web' => [
+        'driver' => 'session',
+        'provider' => 'users',
     ],
 
+    'api' => [
+        'driver' => 'sanctum', // تأكدي باللي هاد السطر كاين أو زيدي هاد الـ guard كامل
+        'provider' => 'users',
+    ],
+],
     /*
     |--------------------------------------------------------------------------
     | User Providers

@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* إخفاء شريط التمرير للمتصفحات المختلفة مع الحفاظ على عمل الصفحة */
+html, body {
+    overflow-x: hidden; /* منع التمرير الأفقي تماماً */
+    scrollbar-width: none;
+    max-width: 100%;
+    overflow-x: hidden; /* لإخفاء الشريط في متصفح Firefox */
+}
+/* ستايل مخصص للأيام المحجوزة ف الـ react-calendar */
+.bg-red-200 {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+  border-radius: 8px !important;
+}
+html::-webkit-scrollbar {
+    display: none; /* لإخفاء الشريط في متصفحات Chrome, Safari, و Edge */
+}

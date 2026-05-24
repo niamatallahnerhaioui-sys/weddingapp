@@ -2,27 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Salle extends Model {
-    use HasFactory;
-
+class Salle extends Model
+{
     protected $fillable = [
-        'prestataire_id', // هادي كانت ناقصة وهي سباب المشكل
-        'nom', 
-        'adresse', 
-        'ville', 
-        'capacite_min', 
-        'capacite_max', 
-        'prix_journee', 
-        'prix_soiree', 
-        'photo', 
-        
+        'nom', 'adresse', 'ville', 'capacite_min', 'capacite_max', 'prix_journee', 'prix_soiree', 'photo', 'prestataire_id'
     ];
 
-    // علاقة القاعة مع صاحب الخدمة (اختياري ولكن مفيد)
-    public function prestataire() {
+    // تأكدي أن هاد الدالة كاينا لداخل
+    public function user()
+    {
         return $this->belongsTo(User::class, 'prestataire_id');
     }
 }

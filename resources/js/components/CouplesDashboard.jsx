@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios'; // استيراد أكسيوس لجلب الديفيس
 import { 
     Heart, Calendar, Wallet, FileText, CheckCircle2, 
     LogOut, Bell, ChevronRight, User, Save, Camera, 
-    TrendingUp, Clock, Info, Sparkles, Plus, X
+    TrendingUp, Clock, Info, Sparkles, Plus, X, Loader2
 } from 'lucide-react';
 
 export default function CouplesDashboard({ user, onLogout }) {
     const [activeTab, setActiveTab] = useState('overview');
     const [showNotifications, setShowNotifications] = useState(false);
     
+    // حالات خاصة بجلب الـ Devis
+    const [devisList, setDevisList] = useState([]);
+    const [loadingDevis, setLoadingDevis] = useState(false);
+
     const [profileData, setProfileData] = useState({
         nom: user?.nom || 'N',
         prenom: user?.prenom || 'Niamatallah',
@@ -33,6 +38,26 @@ export default function CouplesDashboard({ user, onLogout }) {
             setTasks([...tasks, { id: Date.now(), text: newTaskText, completed: false }]);
             setNewTaskText("");
             setIsAddingTask(false);
+        }
+    };
+
+    // جلب الـ Devis الخاصة بالكوبل عند فتح الـ Budget
+    useEffect(() => {
+        if (activeTab === 'budget') {
+            fetchClientDevis();
+        }
+    }, [activeTab]);
+
+    const fetchClientDevis = async () => {
+        setLoadingDevis(true);
+        try {
+            // كنزيبو الـ Devis بـ الـ user_id ديال هاد الكوبل
+            const response = await axios.get(`/api/client/devis?user_id=${user?.id || 1}`);
+            setDevisList(response.data);
+        } catch (error) {
+            console.error("Erreur lors du chargement des devis", error);
+        } finally {
+            setLoadingDevis(false);
         }
     };
 
@@ -84,7 +109,7 @@ export default function CouplesDashboard({ user, onLogout }) {
             {/* Main Content */}
             <main className="flex-1 overflow-y-auto p-12 relative bg-stone-50/20">
                 
-                {/* Header fix to prevent overlap (image_9b9148.png) */}
+                {/* Header fix to prevent overlap */}
                 <div className="flex justify-between items-start mb-12 relative z-20">
                     <h1 className="text-3xl font-serif font-bold text-stone-800 italic">
                         {activeTab === 'overview' ? `Bonjour, ${profileData.prenom} ! 👋` : 
@@ -172,7 +197,7 @@ export default function CouplesDashboard({ user, onLogout }) {
                         </motion.div>
                     )}
 
-                    {/* 3. Budget & Devis (image_9b9148.png fix) */}
+                    {/* 3. Budget & Devis (المكان اللي عدلناه) */}
                     {activeTab === 'budget' && (
                         <motion.div key="budget" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-4xl mx-auto space-y-12">
                             <div className="bg-stone-900 p-12 rounded-[4rem] shadow-2xl text-white relative overflow-hidden">
@@ -189,14 +214,51 @@ export default function CouplesDashboard({ user, onLogout }) {
                                 <div className="absolute top-[-20%] right-[-10%] w-72 h-72 bg-[#D4AF37]/10 rounded-full blur-[80px]"></div>
                             </div>
                             
+                            {/* عرض الـ Devis هنا بتصميم متناسق */}
                             <div className="bg-white p-10 rounded-[3rem] shadow-sm border border-stone-100">
-                                <h3 className="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2"><FileText size={20} className="text-[#047857]"/> Devis envoyés</h3>
-                                <p className="text-stone-400 italic">Vous n'avez pas encore envoyé de demandes de devis.</p>
+                                <h3 className="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
+                                    <FileText size={22} className="text-[#047857]"/> Devis envoyés
+                                </h3>
+                                
+                                {loadingDevis ? (
+                                    <div className="flex justify-center items-center py-8 gap-2 text-stone-400">
+                                        <Loader2 size={20} className="animate-spin text-[#047857]" />
+                                        <span>Chargement des devis...</span>
+                                    </div>
+                                ) : devisList.length === 0 ? (
+                                    <p className="text-stone-400 italic">Vous n'avez pas encore envoyé de demandes de devis.</p>
+                                ) : (
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {devisList.map((devis) => (
+                                            <div key={devis.id} className="p-6 border border-stone-100 rounded-3xl bg-stone-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:shadow-md">
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs uppercase tracking-wider font-black text-stone-400">Prestataire #{devis.prestataire_id}</span>
+                                                    </div>
+                                                    <p className="text-sm font-bold text-stone-600">Date demandée : <span className="text-stone-800">{devis.date_evenement}</span></p>
+                                                    <p className="text-xs text-stone-400 font-medium">Invités : {devis.nb_invites} personnes</p>
+                                                    {devis.message && <p className="text-xs italic text-stone-500 mt-2 bg-white p-3 rounded-xl border border-stone-100">"{devis.message}"</p>}
+                                                </div>
+                                                
+                                                {/* الحالة د الـ Devis */}
+                                                <div className="flex items-center">
+                                                    <span className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider ${
+                                                        devis.statut === 'accepte' ? 'bg-emerald-50 text-[#047857]' : 
+                                                        devis.statut === 'refuse' ? 'bg-red-50 text-red-600' : 
+                                                        'bg-amber-50 text-[#D4AF37]'
+                                                    }`}>
+                                                        {devis.statut === 'accepte' ? 'Accepté' : devis.statut === 'refuse' ? 'Refusé' : 'En Attente'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     )}
 
-                    {/* 4. Favoris (Heart Design preserved) */}
+                    {/* 4. Favoris */}
                     {activeTab === 'favoris' && (
                         <motion.div key="empty" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="h-full flex flex-col items-center justify-center text-center -mt-12">
                             <div className="w-40 h-40 bg-stone-50 rounded-full flex items-center justify-center mb-8 relative shadow-inner">
@@ -209,6 +271,7 @@ export default function CouplesDashboard({ user, onLogout }) {
                         </motion.div>
                     )}
 
+                    {/* 5. Profil */}
                     {activeTab === 'profile' && (
                         <motion.div key="profile" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-4xl mx-auto text-left">
                             <h2 className="text-3xl font-serif font-bold text-stone-800 mb-8 italic text-left">Paramètres du Compte</h2>

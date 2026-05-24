@@ -10,11 +10,26 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
         e.preventDefault();
         try {
             const res = await axios.post('/api/login', formData);
-            // نرسل المستخدم والـ role ومعلومات الـ prestataire (إلى كاين)
-            onLoginSuccess(res.data.user, res.data.role, res.data.user.prestataire);
+            
+            if (res.data.token) {
+                // حفظ التوكن باسم موحد 'token' في المتصفح
+                localStorage.setItem('token', res.data.token);
+                
+                // تفعيل التوكن فوراً في axios للعمليات اللاحقة المباشرة
+                axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+            }
+            
+            if (res.data.user && res.data.user.prestataire) {
+                localStorage.setItem('prestataire_id', res.data.user.prestataire.id);
+            }
+
+            // تمرير البيانات كاملة دون المساس بمتغيرات الأب
+            onLoginSuccess(res.data.user, res.data.role);
+            
         } catch (error) {
             console.error(error);
-            alert("Email ou mot de passe incorrect");
+            const errorMsg = error.response?.data?.message || "Email ou mot de passe incorrect";
+            alert(errorMsg);
         }
     };
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Users, Upload } from 'lucide-react';
 import axios from 'axios';
 
-export default function AddSalleForm({ prestataireId, onBack, onSuccess }) {
+export default function AddSalleForm({ onBack, onSuccess }) { // حيدنا prestataireId حيت مبقاش محتاجينو هنا
     const [salleData, setSalleData] = useState({
         nom: '',
         adresse: '',
@@ -23,45 +23,49 @@ export default function AddSalleForm({ prestataireId, onBack, onSuccess }) {
         setPhoto(e.target.files[0]);
     };
 
-   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const data = new FormData();
-    
-    // إضافة المعرف مباشرة
-    data.append('prestataire_id', prestataireId);
-    
-    // إضافة باقي الحقول
-    Object.keys(salleData).forEach(key => {
-        if (salleData[key] !== '') {
-            data.append(key, salleData[key]);
-        }
-    });
-    
-    if (photo) {
-        data.append('photo', photo);
-    }
-
-    try {
-        const response = await axios.post('/api/salles', data, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const data = new FormData();
+        
+        // إضافة باقي الحقول تلقائياً
+        Object.keys(salleData).forEach(key => {
+            if (salleData[key] !== '') {
+                data.append(key, salleData[key]);
+            }
         });
+        
+        if (photo) {
+            data.append('photo', photo);
+        }
 
-        if (response.status === 201 || response.status === 200) {
-            alert("Salle ajoutée avec succès !");
-            if (onSuccess) onSuccess(response.data);
-            if (onBack) onBack();
+        // كنجيبو الـ Token اللي مخزنينو فـ المتصفح
+        const token = localStorage.getItem('token');
+
+        try {
+            const response = await axios.post('/api/salles', data, {
+                headers: { 
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}` // صيفطنا الساروت للباكيند
+                }
+            });
+
+            if (response.status === 201 || response.status === 200) {
+                alert("Salle ajoutée avec succès !");
+                if (onSuccess) onSuccess(response.data);
+                if (onBack) onBack();
+            }
+        } catch (error) {
+            if (error.response && error.response.status === 422) {
+                console.log("Validation Errors:", error.response.data.errors);
+                alert("Erreur de validation: " + Object.values(error.response.data.errors).flat().join('\n'));
+            } else if (error.response && error.response.status === 401) {
+                alert("Votre session a expiré. Veuillez vous reconnecter.");
+            } else {
+                console.error("Server Error:", error.response?.data);
+                alert("Erreur: " + (error.response?.data?.error || "Problème de connexion au serveur."));
+            }
         }
-    } catch (error) {
-        if (error.response && error.response.status === 422) {
-            // أخطاء الـ Validation من Laravel
-            console.log("Validation Errors:", error.response.data.errors);
-            alert("Erreur de validation: " + Object.values(error.response.data.errors).flat().join('\n'));
-        } else {
-            console.error("Server Error:", error.response?.data);
-            alert("Erreur: " + (error.response?.data?.error || "Problème de connexion au serveur."));
-        }
-    }
-};
+    };
 
     return (
         <div className="p-8 max-w-4xl mx-auto bg-white rounded-[2rem]">
@@ -111,7 +115,6 @@ export default function AddSalleForm({ prestataireId, onBack, onSuccess }) {
                         <input type="file" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
                     </div>
                 </div>
-
 
                 <button type="submit" className="md:col-span-2 bg-[#047857] text-white py-5 rounded-2xl font-bold shadow-lg hover:bg-[#035e44] transition-all">
                     Enregistrer la Salle
