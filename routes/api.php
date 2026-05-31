@@ -9,13 +9,28 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PackController;
 use App\Http\Controllers\DisponibiliteController; 
 use App\Http\Controllers\DevisController;      
+use App\Http\Controllers\API\IAController;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider ou bootstrap/app.php
+| et seront automatiquement préfixées par "/api".
+|
+*/
+
+// 🎯 رابط الـ WeddingBot الذكي (مفتوح للعموم لتفادي أخطاء الـ 401 والـ 404)
+Route::post('/ia/chat', [IAController::class, 'chat']);
 
 // --- 1. Routes المفتوحة للعموم (لا تحتاج لـ Token) ---
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/complete-profile', [AuthController::class, 'completeProfile']);
 
-// هادو كيبقاو مفتوحين يلا بغيتي أي زائر للموقع يشوف القاعات أو الـ Packs بلا ما يسجل الدخول
+// روابط عامة لمشاهدة القاعات والخدمات بدون تسجيل الدخول
 Route::get('/public/salles', [SalleController::class, 'publicIndex']); 
 Route::get('/formules', [FormuleController::class, 'index']);
 Route::get('/packs', [PackController::class, 'index']);
@@ -30,7 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // إدارة القاعات (تم نقل الـ GET لهنا باش يقرا الـ Token ديال الـ Prestataire)
-    Route::get('/salles', [SalleController::class, 'index']); // دابا هادي غتقرا الـ Token بلا مشاكل
+    Route::get('/salles', [SalleController::class, 'index']); 
     Route::post('/salles', [SalleController::class, 'store']);
     Route::delete('/salles/{id}', [SalleController::class, 'destroy']);
     
@@ -38,7 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/formules', [FormuleController::class, 'store']);
     Route::delete('/formules/{id}', [FormuleController::class, 'destroy']);
 
-    // الـ الكالندري والتواريخ
+    // الكالندري والتواريخ
     Route::post('/disponibilites', [DisponibiliteController::class, 'storeOrUpdate']);
     Route::get('/disponibilites/prestataire/{id}', [DisponibiliteController::class, 'getPrestataireDispo']);
 

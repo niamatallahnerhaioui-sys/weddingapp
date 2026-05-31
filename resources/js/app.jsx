@@ -20,22 +20,25 @@ import FormuleList from './components/FormuleList';
 import SalleList from './components/SalleList';
 import Profile from './components/Profile';
 import BudgetEstimator from './components/BudgetEstimator'; 
-import Marketplace from './components/Marketplace'; // تحديث الاستيراد هنا لـ Marketplace المطور
+import Marketplace from './components/Marketplace'; 
 import AdminDashboard from './components/AdminDashboard';
 
 // استيراد المكونات الجديدة (Sprint 5)
 import PrestataireCalendar from './components/PrestataireCalendar';
 import DemandeDevisForm from './components/DemandeDevisForm';
 
+// 🔥 استيراد الـ WeddingBot المحدث
+import WeddingBot from './components/WeddingBot';
+
 function App() {
     const [user, setUser] = useState(null);
     const [view, setView] = useState('home');
     const [adminSubView, setAdminSubView] = useState('stats');
     
-    // 🎯 State لتخزين البريستاتير الذي تم اختياره لإرسال الدوفيس له
+    // State لتخزين البريستاتير الذي تم اختياره لإرسال الدوفيس له
     const [targetPrestataire, setTargetPrestataire] = useState(null);
 
-    // 🔒 كود فحص الـ Token وتثبيته في الـ Axios تلقائياً عند الدخول
+    // كود فحص الـ Token وتثبيته في الـ Axios تلقائياً عند الدخول
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
@@ -72,9 +75,15 @@ function App() {
 
     const prestataireType = user?.prestataire?.type;
 
+    // 🎯 تحديد الصفحات التي يجب أن يظهر فيها الـ WeddingBot
+    const allowedBotViews = ['home', 'budget_estimator', 'marketplace', 'couple_dashboard', 'packs', 'demande_devis'];
+    const showWeddingBot = allowedBotViews.includes(view);
+
     return (
-        <div className="min-h-screen bg-[#FAFAFA] font-sans text-gray-800 flex flex-col">
-            <div className="flex flex-1 overflow-hidden relative">
+        // تم تغيير الـ الهيكلة هنا بـ h-screen و flex-col مع ضبط الـ relative لتفادي أي تداخل
+        <div className="w-full h-screen bg-[#FAFAFA] font-sans text-gray-800 flex flex-col relative overflow-hidden">
+            
+            <div className="flex flex-1 overflow-hidden relative w-full h-full">
                 <AnimatePresence mode="wait">
 
                     {isPublicPage && (
@@ -178,6 +187,10 @@ function App() {
 
                 </AnimatePresence>
             </div>
+
+            {/* 🤖 🎯 تم نقل البوت إلى هنا (خارج نطاق الـ flex و الـ overflow-hidden للـ Layout) */}
+            {/* هاد التغيير غادي يخليه يطبق الـ fixed bottom-6 right-6 بحرية تامة وينزل لتحت على اليمن */}
+            {showWeddingBot && <WeddingBot userId={user?.id} />}
         </div>
     );
 }

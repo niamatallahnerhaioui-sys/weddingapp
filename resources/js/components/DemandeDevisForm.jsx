@@ -10,12 +10,11 @@ export default function DemandeDevisForm({ prestataireId }) {
     const [bookedDates, setBookedDates] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    // جلب التواريخ المحجوزة أو المبلوكية ديال هاد الـ prestataire باش الـ couple يعرف راسو
+    // جلب التواريخ المحجوزة
     useEffect(() => {
         if (prestataireId) {
-            axios.get(`/api/prestataires/${prestataireId}/disponibilites`)
+            axios.get(`http://localhost:8000/api/prestataires/${prestataireId}/disponibilites`)
                 .then(res => {
-                    // كناخدو غير لليام لي ماشي libre
                     const unavailable = res.data
                         .filter(item => item.statut !== 'libre')
                         .map(item => item.date_bloquee || item.date);
@@ -28,7 +27,6 @@ export default function DemandeDevisForm({ prestataireId }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // التأكد واش التاريخ المعزول مبلوكي
         if (bookedDates.includes(formData.date_evenement)) {
             alert("Désolé, ce prestataire est déjà occupé ou bloqué à cette date. Veuillez choisir une autre date.");
             return;
@@ -36,17 +34,26 @@ export default function DemandeDevisForm({ prestataireId }) {
 
         setLoading(true);
         try {
-            await axios.post('/api/devis', {
+            // جبدنا الـ token المحفوظ ف المتصفح من بعد الـ login
+            const token = localStorage.getItem('token'); 
+
+            await axios.post('http://localhost:8000/api/devis', {
                 prestataire_id: prestataireId,
                 date_evenement: formData.date_evenement,
                 nb_invites: parseInt(formData.nb_invites),
                 message: formData.message
+            }, {
+                // إرسال الـ Token ف الـ Headers باش يقبلو الـ Backend
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
+
             alert("Votre demande de devis a été envoyée avec succès !");
             setFormData({ date_evenement: '', nb_invites: '', message: '' });
         } catch (error) {
             console.error(error.response?.data);
-            alert("Erreur lors de l'envoi de la demande.");
+            alert(error.response?.data?.message || "Erreur lors de l'envoi de la demande.");
         } finally {
             setLoading(false);
         }
@@ -57,7 +64,6 @@ export default function DemandeDevisForm({ prestataireId }) {
             <h3 className="text-lg font-light tracking-[0.2em] uppercase mb-6 text-center">Demander un Devis</h3>
             
             <form onSubmit={handleSubmit} className="space-y-5 text-left">
-                
                 {/* تاريخ الحدث */}
                 <div className="flex flex-col space-y-1.5">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 pl-1">Date de l'événement</label>

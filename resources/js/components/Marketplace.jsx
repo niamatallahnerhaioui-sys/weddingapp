@@ -45,6 +45,16 @@ const Marketplace = ({ setView, setTargetPrestataire }) => {
     }, []);
 
     const handleActionDevis = (prestataire) => {
+        // 🔒 الفحص السحري: واش الكوبل مكونيكطي؟
+        const token = localStorage.getItem('token'); 
+        
+        if (!token) {
+            alert("Veuillez vous connecter d'abord pour pouvoir demander un devis.");
+            setView?.('login'); // صيفطو يتكونيكطا
+            return;
+        }
+
+        // يلا كان مكونيكطي يدوز عادي للـ Form
         setTargetPrestataire?.({ id: prestataire.id, nom: prestataire.nom });
         setView?.('demande_devis');
     };
@@ -62,40 +72,40 @@ const Marketplace = ({ setView, setTargetPrestataire }) => {
             
             {/* --- Navigation Bar --- */}
             <nav className="w-full px-6 md:px-12 flex justify-between items-center bg-transparent py-6 box-border z-30 relative">
-                {/* اللوغو بنفس لون Marketplace المستهدف */}
+                {/* اللوغو باللون الذهبي المستهدف المتناسق */}
                 <div className="flex items-center cursor-pointer" onClick={() => setView?.('home')}>
-                    <h1 className="text-2xl md:text-3xl font-serif font-black tracking-[0.2em] text-[#D4AF37] uppercase italic font-bold">
+                    <h1 className="text-2xl md:text-3xl font-serif font-black tracking-[0.2em] text-[#DEB887] uppercase italic font-bold">
                         OURS
                     </h1>
                 </div>
                 
-                {/* الأزرار الوسطى: شفافة تماماً وبدون أي خلفية (No background/No borders) */}
+                {/* الأزرار الوسطى: شفافة تماماً وبدون أي خلفية */}
                 <div className="flex items-center gap-6 md:gap-10 text-xs md:text-sm font-medium tracking-wider bg-transparent">
                     <button 
                         onClick={() => setView?.('budget_estimator')} 
-                        className="bg-transparent border-none p-0 text-white hover:text-[#D4AF37] transition duration-300 cursor-pointer outline-none"
+                        className="bg-transparent border-none p-0 text-white hover:text-[#DEB887] transition duration-300 cursor-pointer outline-none"
                     >
                         Budget Estimator
                     </button>
                     <button 
                         onClick={() => setView?.('marketplace')} 
-                        className="bg-transparent border-none p-0 text-[#D4AF37] font-semibold transition duration-300 border-b-2 border-[#DEB887] pb-1 cursor-pointer outline-none"
+                        className="bg-transparent border-none p-0 text-[#DEB887] font-semibold transition duration-300 border-b-2 border-[#DEB887] pb-1 cursor-pointer outline-none"
                     >
                         Marketplace
                     </button>
                     <button 
                         onClick={() => setView?.('login')} 
-                        className="bg-transparent border-none p-0 text-white hover:text-[#D4AF37] transition duration-300 cursor-pointer outline-none"
+                        className="bg-transparent border-none p-0 text-white hover:text-[#DEB887] transition duration-300 cursor-pointer outline-none"
                     >
                         Packs
                     </button>
                 </div>
 
-                {/* زر Espace Pro بنفس لون الـ Marketplace التناغمي */}
+                {/* زر Espace Pro باللون الموحد الأنيق */}
                 <div>
                     <button 
                         onClick={() => setView?.('login')} 
-                        className="bg-[#D4AF37] text-[#1E3E2F] text-xs font-bold uppercase tracking-[0.1em] px-5 py-2 rounded-full hover:bg-white hover:text-[#1E3E2F] transition-all shadow-md border-none cursor-pointer"
+                        className="bg-[#DEB887] text-[#1E3E2F] text-xs font-bold uppercase tracking-[0.1em] px-5 py-2 rounded-full hover:bg-white hover:text-[#1E3E2F] transition-all shadow-md border-none cursor-pointer"
                     >
                         Espace Pro
                     </button>
@@ -104,7 +114,6 @@ const Marketplace = ({ setView, setTargetPrestataire }) => {
 
             {/* --- Search and Filters --- */}
             <div className="w-full max-w-5xl mx-auto mt-8 px-6 relative z-10 space-y-4">
-                {/* حقل البحث الرئيسي العريض */}
                 <div className="w-full bg-[#163225] rounded-none border border-black/30 flex items-center px-4 py-3.5 shadow-inner">
                     <input 
                         type="text" 
@@ -116,9 +125,7 @@ const Marketplace = ({ setView, setTargetPrestataire }) => {
                     <Search size={20} className="text-gray-400 cursor-pointer" />
                 </div>
 
-                {/* أزرار الفلاتر الملونة القابلة للكتابة والتعديل */}
                 <div className="flex justify-start gap-3">
-                    {/* فلتر المدينة */}
                     <div className="bg-white rounded-md shadow-md flex items-center px-3 py-1.5 border border-stone-200 w-44">
                         <MapPin size={16} className="text-stone-700 mr-2 flex-shrink-0" />
                         <input 
@@ -130,7 +137,6 @@ const Marketplace = ({ setView, setTargetPrestataire }) => {
                         />
                     </div>
 
-                    {/* فلتر الميزانية */}
                     <div className="bg-white rounded-md shadow-md flex items-center px-3 py-1.5 border border-stone-200 w-44">
                         <BadgeDollarSign size={16} className="text-stone-700 mr-2 flex-shrink-0" />
                         <input 
