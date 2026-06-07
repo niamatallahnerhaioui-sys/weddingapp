@@ -1,7 +1,6 @@
+// resources/js/components/Register.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
-import { motion } from 'framer-motion'; // هذا هو السطر اللي كان ناقص وكيفرقع الصفحة
-import { User, ChefHat, Mail, Lock, MapPin, Phone, Building2 } from 'lucide-react';
 
 export default function Register({ onRegisterSuccess, onSwitchToLogin }) {
     const [role, setRole] = useState('couple'); // 'couple' أو 'prestataire'
@@ -19,7 +18,6 @@ export default function Register({ onRegisterSuccess, onSwitchToLogin }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // تنظيف البيانات: نصيفتو فقط اللي كيحتاجو السيستم على حساب الـ Role
         let dataToSend = {
             nom: formData.nom,
             prenom: formData.prenom,
@@ -51,108 +49,179 @@ export default function Register({ onRegisterSuccess, onSwitchToLogin }) {
     };
 
     return (
-        <div className="p-8 max-w-2xl mx-auto bg-white rounded-[2.5rem] shadow-sm border border-gray-50 text-left">
-            <h2 className="text-4xl font-serif font-bold text-center mb-8 italic text-gray-800">Inscription</h2>
+        <div className="min-h-screen w-full bg-[#F3EFEA] flex flex-col items-center justify-center font-serif p-4 select-none">
             
-            {/* إختيار النوع: Couple أو Prestataire */}
-            <div className="flex border rounded-2xl overflow-hidden mb-8 p-1 bg-gray-50">
-                <button 
-                    type="button"
-                    onClick={() => setRole('couple')}
-                    className={`flex-1 py-3 font-bold transition-all rounded-xl ${role === 'couple' ? 'bg-[#047857] text-white shadow-md' : 'text-gray-400 hover:bg-gray-100'}`}
-                >
-                    Couple
-                </button>
-                <button 
-                    type="button"
-                    onClick={() => setRole('prestataire')}
-                    className={`flex-1 py-3 font-bold transition-all rounded-xl ${role === 'prestataire' ? 'bg-[#047857] text-white shadow-md' : 'text-gray-400 hover:bg-gray-100'}`}
-                >
-                    Prestataire
-                </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                    <input 
-                        placeholder="Nom" 
-                        required 
-                        value={formData.nom}
-                        onChange={e => setFormData({...formData, nom: e.target.value})} 
-                        className="p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-[#D4AF37]" 
-                    />
-                    <input 
-                        placeholder="Prénom" 
-                        required 
-                        value={formData.prenom}
-                        onChange={e => setFormData({...formData, prenom: e.target.value})} 
-                        className="p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-[#D4AF37]" 
-                    />
-                </div>
+            {/* الحاوية المركزية النظيفة والمطابقة لأبعاد وحجم الـ Login */}
+            <div className="w-full max-w-sm flex flex-col items-center bg-transparent">
                 
-                <input 
-                    type="email" 
-                    placeholder="Email" 
-                    required 
-                    value={formData.email}
-                    onChange={e => setFormData({...formData, email: e.target.value})} 
-                    className="w-full p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-[#D4AF37]" 
-                />
+                {/* العناوين الرئيسية */}
+                <h1 className="text-2xl sm:text-3xl tracking-widest text-[#1E2E28] font-light uppercase mb-1">
+                    INSCRIPTION
+                </h1>
                 
-                <input 
-                    type="password" 
-                    placeholder="Mot de passe" 
-                    required 
-                    value={formData.password}
-                    onChange={e => setFormData({...formData, password: e.target.value})} 
-                    className="w-full p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-[#D4AF37]" 
-                />
-
-                {/* خانات الـ Prestataire تظهر فقط عند اختياره */}
-                {role === 'prestataire' && (
-                    <motion.div 
-                        initial={{ opacity: 0, y: 10 }} 
-                        animate={{ opacity: 1, y: 0 }} 
-                        className="space-y-4"
+                <h2 className="text-xs tracking-wider text-[#1E2E28] uppercase font-semibold mb-6 border-b border-[#1E2E28]/20 pb-2 w-full text-center">
+                    CRÉER VOTRE COMPTE COMPAGNON
+                </h2>
+                
+                {/* شريط اختيار الـ Role - مستطيلات ناصعة ملتصقة تعبر عن الهوية المرجعية */}
+                <div className="w-full flex text-center mb-6 text-[11px] font-bold tracking-widest uppercase">
+                    <button 
+                        type="button"
+                        onClick={() => setRole('couple')}
+                        className={`flex-1 py-2 transition-all duration-200 border-none outline-none ${
+                            role === 'couple' 
+                                ? 'bg-[#4A6157] text-white' 
+                                : 'bg-[#EADCC5]/40 text-[#1E2E28]/50 hover:bg-[#EADCC5]/60'
+                        }`}
                     >
-                        <input 
-                            placeholder="Nom Commercial" 
-                            required 
-                            value={formData.nom_commercial}
-                            onChange={e => setFormData({...formData, nom_commercial: e.target.value})} 
-                            className="w-full p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-[#047857]" 
-                        />
-                        <div className="grid grid-cols-2 gap-4">
-                            <input 
-                                placeholder="Téléphone" 
-                                required 
-                                value={formData.telephone}
-                                onChange={e => setFormData({...formData, telephone: e.target.value})} 
-                                className="p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-[#047857]" 
-                            />
-                            <select 
-                                value={formData.type}
-                                onChange={e => setFormData({...formData, type: e.target.value})} 
-                                className="p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-[#047857]"
-                            >
-                                <option value="salle">Salle de fête</option>
-                                <option value="traiteur">Traiteur</option>
-                            </select>
-                        </div>
-                    </motion.div>
-                )}
+                        COUPLE
+                    </button>
+                    <button 
+                        type="button"
+                        onClick={() => setRole('prestataire')}
+                        className={`flex-1 py-2 transition-all duration-200 border-none outline-none ${
+                            role === 'prestataire' 
+                                ? 'bg-[#4A6157] text-white' 
+                                : 'bg-[#EADCC5]/40 text-[#1E2E28]/50 hover:bg-[#EADCC5]/60'
+                        }`}
+                    >
+                        PRESTATAIRE
+                    </button>
+                </div>
 
-                <button 
-                    type="submit" 
-                    className="w-full bg-[#047857] text-white py-5 rounded-2xl font-bold text-lg hover:bg-[#035e44] transition-all shadow-lg shadow-emerald-100"
-                >
-                    S'inscrire en tant que {role === 'couple' ? 'Couple' : 'Prestataire'}
-                </button>
-            </form>
-            
-            <p className="text-center mt-6 text-gray-400 font-medium">
-                Déjà inscrit ? <button onClick={onSwitchToLogin} className="text-[#047857] font-bold hover:underline">Connectez-vous</button>
-            </p>
+                <form onSubmit={handleSubmit} className="w-full space-y-4">
+                    
+                    {/* حقل الاسم والنسب - مقسم إلى عمودين متناسقين */}
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="w-full">
+                            <div className="flex items-center bg-[#BC9414] px-2 py-1 text-[9px] font-bold tracking-widest text-white uppercase">
+                                NOM
+                            </div>
+                            <input 
+                                type="text"
+                                placeholder="Nom" 
+                                required 
+                                value={formData.nom}
+                                onChange={e => setFormData({...formData, nom: e.target.value})} 
+                                className="w-full p-2.5 bg-[#EADCC5]/60 border-none outline-none text-[#1E2E28] font-sans text-sm focus:bg-[#EADCC5] transition-all" 
+                            />
+                        </div>
+                        <div className="w-full">
+                            <div className="flex items-center bg-[#BC9414] px-2 py-1 text-[9px] font-bold tracking-widest text-white uppercase">
+                                PRENOM
+                            </div>
+                            <input 
+                                type="text"
+                                placeholder="Prénom" 
+                                required 
+                                value={formData.prenom}
+                                onChange={e => setFormData({...formData, prenom: e.target.value})} 
+                                className="w-full p-2.5 bg-[#EADCC5]/60 border-none outline-none text-[#1E2E28] font-sans text-sm focus:bg-[#EADCC5] transition-all" 
+                            />
+                        </div>
+                    </div>
+                    
+                    {/* حقل EMAIL */}
+                    <div className="w-full">
+                        <div className="flex items-center bg-[#BC9414] px-3 py-1.5 text-[10px] font-bold tracking-widest text-white uppercase">
+                            <span className="mr-2 text-xs">✉</span> EMAIL
+                        </div>
+                        <input 
+                            type="email" 
+                            required 
+                            value={formData.email}
+                            onChange={e => setFormData({...formData, email: e.target.value})} 
+                            className="w-full p-2.5 bg-[#EADCC5]/60 border-none outline-none text-[#1E2E28] font-sans text-sm focus:bg-[#EADCC5] transition-all" 
+                        />
+                    </div>
+                    
+                    {/* حقل PASSWORD */}
+                    <div className="w-full">
+                        <div className="flex items-center bg-[#BC9414] px-3 py-1.5 text-[10px] font-bold tracking-widest text-white uppercase">
+                            <span className="mr-2 text-xs">🔒</span> PASSWORD
+                        </div>
+                        <input 
+                            type="password" 
+                            required 
+                            value={formData.password}
+                            onChange={e => setFormData({...formData, password: e.target.value})} 
+                            className="w-full p-2.5 bg-[#EADCC5]/60 border-none outline-none text-[#1E2E28] font-sans text-sm focus:bg-[#EADCC5] transition-all" 
+                        />
+                    </div>
+
+                    {/* الحقول الإضافية الخاصة بالـ Prestataire تفتح بنعومة هندسية متناسقة */}
+                    {role === 'prestataire' && (
+                        <div className="w-full space-y-4 animate-fade-in">
+                            
+                            {/* حقل الاسم التجاري */}
+                            <div className="w-full">
+                                <div className="flex items-center bg-[#BC9414] px-3 py-1.5 text-[10px] font-bold tracking-widest text-white uppercase">
+                                    NOM COMMERCIAL
+                                </div>
+                                <input 
+                                    type="text"
+                                    required 
+                                    value={formData.nom_commercial}
+                                    onChange={e => setFormData({...formData, nom_commercial: e.target.value})} 
+                                    className="w-full p-2.5 bg-[#EADCC5]/60 border-none outline-none text-[#1E2E28] font-sans text-sm focus:bg-[#EADCC5] transition-all" 
+                                />
+                            </div>
+
+                            {/* حقل الهاتف والنوع */}
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="w-full">
+                                    <div className="flex items-center bg-[#BC9414] px-2 py-1 text-[9px] font-bold tracking-widest text-white uppercase">
+                                        TELEPHONE
+                                    </div>
+                                    <input 
+                                        type="text"
+                                        placeholder="06..."
+                                        required 
+                                        value={formData.telephone}
+                                        onChange={e => setFormData({...formData, telephone: e.target.value})} 
+                                        className="w-full p-2.5 bg-[#EADCC5]/60 border-none outline-none text-[#1E2E28] font-sans text-sm focus:bg-[#EADCC5] transition-all" 
+                                    />
+                                </div>
+                                <div className="w-full">
+                                    <div className="flex items-center bg-[#BC9414] px-2 py-1 text-[9px] font-bold tracking-widest text-white uppercase">
+                                        TYPE
+                                    </div>
+                                    <select 
+                                        value={formData.type}
+                                        onChange={e => setFormData({...formData, type: e.target.value})} 
+                                        className="w-full p-2.5 bg-[#EADCC5]/60 border-none outline-none text-[#1E2E28] font-sans text-sm focus:bg-[#EADCC5] transition-all appearance-none cursor-pointer"
+                                    >
+                                        <option value="salle">Salle de fête</option>
+                                        <option value="traiteur">Traiteur</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* زر التسجيل المستطيل بالأخضر الداكن */}
+                    <button 
+                        type="submit" 
+                        className="w-full bg-[#4A6157] text-white py-2 text-xs tracking-widest uppercase font-bold hover:bg-[#3D5249] transition-all duration-300 mt-4"
+                    >
+                        S'INSCRIRE
+                    </button>
+                </form>
+
+                {/* رابط الانتقال لصفحة تسجيل الدخول */}
+                <div className="text-center pt-4">
+                    <p className="text-[#1E2E28]/70 text-xs tracking-wider">
+                        Déjà inscrit ?{' '}
+                        <span 
+                            onClick={onSwitchToLogin} 
+                            className="text-[#BC9414] cursor-pointer font-bold hover:underline ml-1"
+                        >
+                            Connectez-vous
+                        </span>
+                    </p>
+                </div>
+
+            </div>
         </div>
     );
 }

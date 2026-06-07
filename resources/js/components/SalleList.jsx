@@ -23,7 +23,6 @@ const SalleList = ({ prestataireId }) => {
                 }
             });
             
-            // التأكد من أن الـ data مصفوفة قبل وضعها فـ الـ state
             setSalles(Array.isArray(res.data) ? res.data : res.data.salles || []);
         } catch (error) {
             console.error("Erreur fetching salles", error);
@@ -33,7 +32,6 @@ const SalleList = ({ prestataireId }) => {
         }
     };
 
-    // تشغيل الدالة عند تغيير الـ prestataireId
     useEffect(() => { 
         if (prestataireId) {
             fetchSalles(); 
@@ -42,7 +40,6 @@ const SalleList = ({ prestataireId }) => {
         }
     }, [prestataireId]);
 
-    // دالة حذف قاعة
     const handleDelete = async (id) => {
         if (!window.confirm("Voulez-vous vraiment supprimer cette salle ?")) return;
         
@@ -66,7 +63,6 @@ const SalleList = ({ prestataireId }) => {
         }
     };
 
-    // 1. حالة التحميل (Loading) مع الحفاظ على الهيكل العام
     if (loading) {
         return (
             <div className="w-full py-20 flex flex-col items-center justify-center gap-3">
@@ -76,7 +72,6 @@ const SalleList = ({ prestataireId }) => {
         );
     }
 
-    // 2. حالة وقوع خطأ فـ الـ API
     if (error) {
         return (
             <div className="w-full py-12 text-center bg-red-50 text-red-500 rounded-[2rem] p-6 border border-red-100">
@@ -89,7 +84,8 @@ const SalleList = ({ prestataireId }) => {
     }
 
     return (
-        <div className="space-y-6">
+        // الكومبوننت دابا شفاف باش يبان لون الصفحة اللي موراه
+        <div className="space-y-6 bg-transparent">
             {/* Header */}
             <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
                 <div className="h-2 w-2 bg-[#047857] rounded-full animate-pulse"></div>
@@ -102,14 +98,13 @@ const SalleList = ({ prestataireId }) => {
                     <div key={salle.id} className="relative group">
                         <div className="bg-white rounded-[2rem] p-4 border border-gray-100 shadow-sm hover:shadow-lg transition-all flex flex-col items-center gap-4 h-full justify-between">
                             
-                            {/* الصورة أو الأيقونة الافتراضية */}
+                            {/* الصورة رجعات للونها الأصلي emerald-50 */}
                             <div className="w-full aspect-square rounded-2xl overflow-hidden bg-emerald-50 flex items-center justify-center border border-emerald-100 relative group-hover:border-emerald-200 transition-colors">
                                 {salle.photo ? (
                                     <img 
                                         src={`/storage/${salle.photo}`} 
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                         alt={salle.nom}
-                                        // حماية في حالة كانت الصورة معطوبة فـ السيرفر
                                         onError={(e) => { e.target.style.display = 'none'; }} 
                                     />
                                 ) : (
@@ -117,7 +112,7 @@ const SalleList = ({ prestataireId }) => {
                                 )}
                             </div>
 
-                            {/* معلومات القاعة مع استعمال الـ Optional Chaining */}
+                            {/* معلومات القاعة */}
                             <div className="w-full text-center space-y-1">
                                 <h4 className="font-bold text-gray-800 text-xs truncate">{salle.nom || 'Sans nom'}</h4>
                                 <p className="text-[10px] text-gray-400 flex items-center justify-center gap-1 font-medium truncate">
@@ -125,15 +120,15 @@ const SalleList = ({ prestataireId }) => {
                                 </p>
                             </div>
 
-                            {/* الثمن */}
-                            <div className="bg-emerald-50 px-4 py-1.5 rounded-full border border-emerald-100 mt-auto">
+                            {/* البلاصة ديال الثمن: هي الوحيدة اللي تبدلات دابا للون العاجي اللي بغيتي ✅ */}
+                            <div className="bg-[#F9F7F2] px-4 py-1.5 rounded-full border border-gray-100 mt-auto">
                                 <span className="text-[11px] font-black text-[#047857] tracking-tight">
                                     {salle.prix_journee ? `${salle.prix_journee} DH` : 'Prix non spécifié'}
                                 </span>
                             </div>
                         </div>
 
-                        {/* زر الحذف الفلوتينغ */}
+                        {/* زر الحذف */}
                         <button 
                             onClick={() => handleDelete(salle.id)}
                             className="absolute -top-2 -right-2 p-2 bg-white text-red-500 rounded-full shadow-lg border border-red-50 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white transform group-hover:translate-x-1 group-hover:-translate-y-1 z-10"
@@ -143,9 +138,9 @@ const SalleList = ({ prestataireId }) => {
                     </div>
                 ))}
 
-                {/* واجهة فارغة فـ حالة عدم وجود أي قاعة */}
+                {/* الواجهة الفارغة حتى هي بـ emerald-50 الافتراضي */}
                 {salles.length === 0 && (
-                    <div className="col-span-full text-center py-16 bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 text-gray-400 text-xs italic">
+                    <div className="col-span-full text-center py-16 bg-emerald-50/50 rounded-[2rem] border-2 border-dashed border-emerald-100 text-gray-400 text-xs italic">
                         Aucune salle trouvée. Commencez par en ajouter une !
                     </div>
                 )}

@@ -15,14 +15,9 @@ use App\Http\Controllers\API\IAController;
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider ou bootstrap/app.php
-| et seront automatiquement préfixées par "/api".
-|
 */
 
-// 🎯 رابط الـ WeddingBot الذكي (مفتوح للعموم لتفادي أخطاء الـ 401 والـ 404)
+// 🎯 رابط الـ WeddingBot الذكي
 Route::post('/ia/chat', [IAController::class, 'chat']);
 
 // --- 1. Routes المفتوحة للعموم (لا تحتاج لـ Token) ---
@@ -30,13 +25,14 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/complete-profile', [AuthController::class, 'completeProfile']);
 
-// روابط عامة لمشاهدة القاعات والخدمات بدون تسجيل الدخول
+// روابط عامة لمشاهدة القاعات والخدمات بدون تسجيل الدخول (تم الإصلاح هنا 🎯)
 Route::get('/public/salles', [SalleController::class, 'publicIndex']); 
+Route::get('/public/prestataires', [SalleController::class, 'publicIndex']); // 👈 دابا مابقاش محمي وغيخدم 100%
 Route::get('/formules', [FormuleController::class, 'index']);
 Route::get('/packs', [PackController::class, 'index']);
 
 
-// --- 2. Routes المحمية (ضروري تمرير الـ Token وسط الـ Authorization Header) ---
+// --- 2. Routes المحمية (ضروري تمرير الـ Token) ---
 Route::middleware('auth:sanctum')->group(function () {
 
     // الـ User الحالي
@@ -44,7 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    // إدارة القاعات (تم نقل الـ GET لهنا باش يقرا الـ Token ديال الـ Prestataire)
+    // إدارة القاعات
     Route::get('/salles', [SalleController::class, 'index']); 
     Route::post('/salles', [SalleController::class, 'store']);
     Route::delete('/salles/{id}', [SalleController::class, 'destroy']);

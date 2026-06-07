@@ -1,105 +1,181 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Utensils, DollarSign, Users, FileText, CheckCircle } from 'lucide-react';
+import { Trash2, Utensils, RefreshCw, Eye, Percent, Layers } from 'lucide-react';
 
-const AddFormuleForm = ({ prestataireId }) => {
-   const [formData, setFormData] = useState({
-    nom: '',
-    description: '',
-    prix_par_personne: '',
-    prestataire_id: prestataireId
-})
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState(null);
+const FormuleList = ({ prestataireId }) => {
+    const [formules, setFormules] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
+    // دالة جلب البيانات من الـ API
+    const fetchFormules = async () => {
         try {
-            // تأكدي من إنشاء هاد الـ Route في api.php ديال Laravel
-            await axios.post('/api/formules', formData);
-            setMessage({ type: 'success', text: 'La formule a été ajoutée avec succès !' });
-            setFormData({ nom: '', description: '', prix_par_personne: '', min_personnes: '', prestataire_id: prestataireId });
+            setLoading(true);
+            setError(null);
+            const token = localStorage.getItem('token'); 
+            
+            const res = await axios.get(`/api/formules?prestataire_id=${prestataireId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+            
+            setFormules(Array.isArray(res.data) ? res.data : res.data.formules || []);
         } catch (error) {
-            setMessage({ type: 'error', text: 'Erreur lors de l’ajout. Veuillez réessayer.' });
+            console.error("Erreur fetching formules", error);
+            setError("Impossible de charger vos formules pour le moment.");
         } finally {
             setLoading(false);
         }
     };
 
+    useEffect(() => { 
+        if (prestataireId) {
+            fetchFormules(); 
+        } else {
+            setLoading(false);
+        }
+    }, [prestataireId]);
+
+    // دالة الحذف
+    const handleDelete = async (id) => {
+        if (!window.confirm("Voulez-vous vraiment supprimer cette formule ?")) return;
+        
+        try {
+            const token = localStorage.getItem('token'); 
+            const res = await axios.delete(`/api/formules/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (res.status === 200 || res.status === 204) {
+                setFormules(prev => prev.filter(f => f.id !== id));
+                alert("Formule supprimée avec succès");
+            }
+        } catch (err) {
+            console.error("Erreur suppression:", err);
+            alert("Erreur lors de la suppression.");
+        }
+    };
+
+    // حسابات الـ Total والإحصائيات التحتانية
+    const totalFormules = formules.length;
+    const avgPrix = totalFormules > 0 
+        ? Math.round(formules.reduce((sum, f) => sum + Number(f.prix_par_personne || f.prix_personne || 0), 0) / totalFormules) 
+        : 0;
+
+    if (loading) {
+        return (
+            <div className="w-full py-20 flex flex-col items-center justify-center gap-3 bg-transparent">
+                <RefreshCw className="text-[#233D37] animate-spin" size={28} />
+                <p className="text-gray-400 italic text-sm font-medium">Chargement de vos formules...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="w-full py-12 text-center bg-red-50 text-red-500 rounded-[2rem] p-6 border border-red-100">
+                <p className="font-bold text-sm mb-2">{error}</p>
+                <button onClick={fetchFormules} className="text-xs bg-white text-red-600 px-4 py-2 rounded-xl shadow-sm border font-semibold hover:bg-red-100 transition">
+                    Réessayer
+                </button>
+            </div>
+        );
+    }
+
     return (
-        <div className="p-8">
-            <div className="flex items-center gap-3 mb-8">
-                <div className="p-3 bg-amber-100 text-amber-600 rounded-2xl">
-                    <Utensils size={28} />
-                </div>
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-800">Nouvelle Formule</h2>
-                    <p className="text-gray-500 text-sm">Créez un menu personnalisé pour vos clients</p>
-                </div>
+        <div className="space-y-6 bg-transparent">
+            {/* Header */}
+            <div className="flex items-center gap-2 mb-6 border-b border-gray-200/60 pb-4">
+                <div className="h-2 w-2 bg-[#233D37] rounded-full animate-pulse"></div>
+                <h3 className="font-bold text-[#233D37] text-sm uppercase tracking-wider">Mes Formules ({totalFormules})</h3>
             </div>
 
-            {message && (
-                <div className={`mb-6 p-4 rounded-xl flex items-center gap-2 ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                    <CheckCircle size={18} />
-                    {message.text}
+            {/* 🟡 قائمة العناصر على شكل الأسطر المستديرة الفخمة المستوحاة من الصورة الثانية */}
+            <div className="space-y-4 max-w-2xl mx-auto">
+                {formules.map(formule => {
+                    // معالجة اختلاف تسمية حقل الثمن من الـ Backend
+                    const prix = formule.prix_par_personne || formule.prix_personne || 0;
+
+                    return (
+                        <div 
+                            key={formule.id} 
+                            className="bg-[#D4B97C] text-[#233D37] rounded-[22px] p-5 flex justify-between items-center shadow-sm border border-[#c4a96c]/50 transition-all hover:scale-[1.01] hover:shadow-md"
+                        >
+                            <div className="flex flex-col text-left max-w-[70%]">
+                                <span className="font-bold text-base uppercase tracking-wider truncate">
+                                    {formule.nom || 'Sans nom'}
+                                </span>
+                                <span className="text-xs text-[#544625] font-semibold mt-1 flex items-center gap-1">
+                                    <Utensils size={12}/>
+                                    {prix} DH / Personne
+                                </span>
+                                {formule.description && (
+                                    <p className="text-[11px] text-[#544625]/80 mt-1 line-clamp-1 italic">
+                                        {formule.description}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* الأزرار الدائرية الجانبية الموحدة */}
+                            <div className="flex items-center gap-3">
+                                <button 
+                                    onClick={() => handleDelete(formule.id)}
+                                    className="w-8 h-8 rounded-full border border-[#233D37] flex items-center justify-center text-[#233D37] hover:bg-red-600 hover:text-white hover:border-red-600 transition-all"
+                                    title="Supprimer"
+                                >
+                                    <Trash2 size={14} />
+                                </button>
+                                <button 
+                                    className="w-8 h-8 rounded-full border border-[#233D37] flex items-center justify-center text-[#233D37] hover:bg-[#233D37] hover:text-[#D4B97C] transition-all"
+                                    title="Voir Détails"
+                                >
+                                    <Eye size={14} />
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })}
+
+                {formules.length === 0 && (
+                    <div className="text-center py-16 text-gray-400 border-2 border-dashed border-gray-200 bg-white rounded-[24px] italic text-xs">
+                        Aucune formule trouvée. Commencez par en ajouter une !
+                    </div>
+                )}
+            </div>
+
+            {/* 🟢 كارت الإحصائيات التحتانية (Total...) مخدومة بديزاين احترافي متناسق */}
+            {formules.length > 0 && (
+                <div className="mt-10 max-w-2xl mx-auto bg-[#233D37] text-[#F9F7F2] rounded-[2.5rem] p-6 shadow-xl border border-[#1E352F]">
+                    <div className="grid grid-cols-2 gap-6 text-center division-x border-gray-700">
+                        
+                        {/* إجمالي الفرميلات */}
+                        <div className="flex flex-col items-center justify-center space-y-1">
+                            <div className="p-2 bg-[#1E352F] rounded-full text-[#D4B97C] mb-1">
+                                <Layers size={16} />
+                            </div>
+                            <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Total Formules</span>
+                            <span className="text-2xl font-black text-[#D4B97C]">{totalFormules}</span>
+                        </div>
+
+                        {/* متوسط الثمن */}
+                        <div className="flex flex-col items-center justify-center space-y-1 border-l border-gray-600/40">
+                            <div className="p-2 bg-[#1E352F] rounded-full text-[#D4B97C] mb-1">
+                                <Percent size={16} />
+                            </div>
+                            <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Prix Moyen</span>
+                            <span className="text-2xl font-black text-[#D4B97C]">{avgPrix} <span className="text-xs font-medium">DH</span></span>
+                        </div>
+
+                    </div>
                 </div>
             )}
-
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700 ml-1">Nom de la Formule</label>
-                    <div className="relative">
-                        <input 
-                            type="text" 
-                            required
-                            placeholder="Ex: Menu Prestige"
-                            className="w-full pl-4 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition"
-                            onChange={(e) => setFormData({...formData, nom: e.target.value})}
-                            value={formData.nom}
-                        />
-                    </div>
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700 ml-1">Prix par Personne (DH)</label>
-                    <div className="relative">
-                        <input 
-                            type="number" 
-                            required
-                            placeholder="0.00"
-                            className="w-full pl-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition"
-                            onChange={(e) => setFormData({...formData, prix_par_personne: e.target.value})}
-                            value={formData.prix_par_personne}
-                        />
-                    </div>
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm font-semibold text-gray-700 ml-1">Description du Menu</label>
-                    <textarea 
-                        rows="4"
-                        required
-                        placeholder="Détaillez les plats, entrées, et desserts..."
-                        className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition"
-                        onChange={(e) => setFormData({...formData, description: e.target.value})}
-                        value={formData.description}
-                    ></textarea>
-                </div>
-
-
-                <div className="md:col-span-2 mt-4">
-                    <button 
-                        type="submit" 
-                        disabled={loading}
-                        className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-2xl shadow-lg shadow-amber-200 transition-all flex items-center justify-center gap-2"
-                    >
-                        {loading ? 'En cours...' : 'Publier la formule'}
-                    </button>
-                </div>
-            </form>
         </div>
     );
 };
 
-export default AddFormuleForm;
+export default FormuleList;

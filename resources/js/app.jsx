@@ -3,13 +3,13 @@ import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
 import ReactDOM from 'react-dom/client';
 import { 
-    LayoutDashboard, LogOut, PlusCircle, Utensils, 
-    User, Search, Menu, Heart, ChefHat, CheckCircle, TrendingUp, Calendar, FileText
+    LayoutDashboard, LogOut, PlusCircle, Utensils, Home as HomeIcon,
+    User, Calendar, FileText
 } from 'lucide-react'; 
 import React from 'react';
 import '../css/app.css';
 
-// استيراد المكونات القديمة والجديدة
+// استيراد المكونات
 import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -22,23 +22,21 @@ import Profile from './components/Profile';
 import BudgetEstimator from './components/BudgetEstimator'; 
 import Marketplace from './components/Marketplace'; 
 import AdminDashboard from './components/AdminDashboard';
+import PacksPage from "./components/PacksPage"; 
 
-// استيراد المكونات الجديدة (Sprint 5)
 import PrestataireCalendar from './components/PrestataireCalendar';
 import DemandeDevisForm from './components/DemandeDevisForm';
-
-// 🔥 استيراد الـ WeddingBot المحدث
+import PrestataireDevis from './components/PrestataireDevis'; 
 import WeddingBot from './components/WeddingBot';
 
 function App() {
     const [user, setUser] = useState(null);
     const [view, setView] = useState('home');
-    const [adminSubView, setAdminSubView] = useState('stats');
     
-    // State لتخزين البريستاتير الذي تم اختياره لإرسال الدوفيس له
+    // هاد الستيت غاتتحكم لينا واش نcrossيو الفورم وسط الدشبرد (list لتعني القائمة، و add لتعني الفورم)
+    const [subView, setSubView] = useState('list'); 
     const [targetPrestataire, setTargetPrestataire] = useState(null);
 
-    // كود فحص الـ Token وتثبيته في الـ Axios تلقائياً عند الدخول
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
@@ -67,49 +65,29 @@ function App() {
             setView('couple_dashboard');
         } else {
             setView('prestataire_dashboard');
+            setSubView('list'); // كيبدأ ديما بالقائمة
         }
     };
 
-    const BlackList = ['prestataire_dashboard', 'profile', 'prestataire_calendar', 'admin_dashboard', 'couple_dashboard', 'add_salle', 'add_formule'];
+    const BlackList = ['prestataire_dashboard', 'prestataire_devis', 'profile', 'prestataire_calendar', 'admin_dashboard', 'couple_dashboard'];
     const isPublicPage = !BlackList.includes(view);
 
     const prestataireType = user?.prestataire?.type;
-
-    // 🎯 تحديد الصفحات التي يجب أن يظهر فيها الـ WeddingBot
-    const allowedBotViews = ['home', 'budget_estimator', 'marketplace', 'couple_dashboard', 'packs', 'demande_devis'];
-    const showWeddingBot = allowedBotViews.includes(view);
+    const showWeddingBot = ['home', 'budget_estimator', 'marketplace', 'couple_dashboard', 'packs', 'demande_devis'].includes(view);
 
     return (
-        // تم تغيير الـ الهيكلة هنا بـ h-screen و flex-col مع ضبط الـ relative لتفادي أي تداخل
-        <div className="w-full h-screen bg-[#FAFAFA] font-sans text-gray-800 flex flex-col relative overflow-hidden">
+        <div className="w-full h-screen bg-[#F9F7F2] font-sans text-gray-800 flex flex-col relative overflow-hidden">
             
             <div className="flex flex-1 overflow-hidden relative w-full h-full">
                 <AnimatePresence mode="wait">
 
                     {isPublicPage && (
                         <motion.div key={view} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full overflow-y-auto">
-                            {view === 'home' && (
-                                <Home 
-                                    onStart={() => setView('register')} 
-                                    setView={setView} 
-                                    view={view} 
-                                />
-                            )}
-                            {view === 'budget_estimator' && (
-                                <BudgetEstimator setView={setView} />
-                            )}
-                            {view === 'marketplace' && (
-                                <Marketplace 
-                                    setView={setView} 
-                                    setTargetPrestataire={setTargetPrestataire} 
-                                />
-                            )}
-                            {view === 'demande_devis' && (
-                                <DemandeDevisForm 
-                                    setView={setView} 
-                                    targetPrestataire={targetPrestataire} 
-                                />
-                            )}
+                            {view === 'home' && <Home onStart={() => setView('register')} setView={setView} view={view} />}
+                            {view === 'budget_estimator' && <BudgetEstimator setView={setView} />}
+                            {view === 'marketplace' && <Marketplace setView={setView} setTargetPrestataire={setTargetPrestataire} />}
+                            {view === 'demande_devis' && <DemandeDevisForm setView={setView} targetPrestataire={targetPrestataire} />}
+                            {view === 'packs' && <PacksPage setView={setView} />}
                             {view === 'login' && <Login onLoginSuccess={handleLoginSuccess} onSwitchToRegister={() => setView('register')} />}
                             {view === 'register' && <Register onRegisterSuccess={() => setView('login')} onSwitchToLogin={() => setView('login')} />}
                         </motion.div>
@@ -119,46 +97,156 @@ function App() {
                         <AdminDashboard user={user} onLogout={handleLogout} />
                     )}
 
-                    {(view === 'prestataire_dashboard' || view === 'profile' || view === 'prestataire_calendar') && (
+                    {/* واجهة الممون الكاملة بـ الديزاين الموحد */}
+                    {(view === 'prestataire_dashboard' || view === 'prestataire_devis' || view === 'profile' || view === 'prestataire_calendar') && (
                         <motion.div key="prestataire" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex w-full h-full overflow-hidden">
-                            <aside className="w-64 bg-white border-r p-6 flex flex-col shadow-sm h-full flex-shrink-0 z-20">
-                                <h2 className="text-xl font-serif font-bold text-[#047857] mb-10 italic text-center">Elite Admin</h2>
-                                <nav className="space-y-4 flex-1">
-                                    <button onClick={() => setView('prestataire_dashboard')} className={`w-full text-left p-3 rounded-xl font-medium flex items-center gap-2 transition ${view === 'prestataire_dashboard' ? 'bg-emerald-50 text-[#047857]' : 'text-gray-400 hover:bg-gray-50'}`}>
-                                        <LayoutDashboard size={18}/> Dashboard
-                                    </button>
+                            
+                            {/* Sidebar الجانبي */}
+                            <aside className="w-64 bg-[#233D37] text-white flex flex-col h-full flex-shrink-0 z-20 shadow-xl border-r border-[#1E352F]">
+                                <div>
+                                    <div className="h-24 bg-[#1E352F] flex items-center justify-center border-b border-[#2A4840]">
+                                        <h2 className="text-xl font-bold uppercase tracking-widest text-[#D4B97C] italic">OURS</h2>
+                                    </div>
                                     
-                                    <button onClick={() => setView('prestataire_calendar')} className={`w-full text-left p-3 rounded-xl font-medium flex items-center gap-2 transition ${view === 'prestataire_calendar' ? 'bg-emerald-50 text-[#047857]' : 'text-gray-400 hover:bg-gray-50'}`}>
-                                        <Calendar size={18}/> Mon Calendrier
-                                    </button>
+                                    <nav className="p-0 flex-1">
+                                        <button 
+                                            onClick={() => { setView('prestataire_dashboard'); setSubView('list'); }} 
+                                            className={`w-full p-4 text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition-all border-b border-[#1E352F]/40 ${
+                                                (view === 'prestataire_dashboard' && subView === 'list') 
+                                                ? 'bg-[#D4B97C] text-[#233D37] font-bold shadow-inner' 
+                                                : 'bg-[#F9F7F2] text-[#233D37] hover:bg-[#EBE7DC]'
+                                            }`}
+                                        >
+                                            <LayoutDashboard size={16}/> Dashboard
+                                        </button>
+                                        
+                                        <button 
+                                            onClick={() => setView('prestataire_devis')} 
+                                            className={`w-full p-4 text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition-all border-b border-[#1E352F]/40 ${
+                                                view === 'prestataire_devis' 
+                                                ? 'bg-[#D4B97C] text-[#233D37] font-bold shadow-inner' 
+                                                : 'bg-[#F9F7F2] text-[#233D37] hover:bg-[#EBE7DC]'
+                                            }`}
+                                        >
+                                            <FileText size={16}/> Demandes Devis
+                                        </button>
+                                        
+                                        <button 
+                                            onClick={() => setView('prestataire_calendar')} 
+                                            className={`w-full p-4 text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition-all border-b border-[#1E352F]/40 ${
+                                                view === 'prestataire_calendar' 
+                                                ? 'bg-[#D4B97C] text-[#233D37] font-bold shadow-inner' 
+                                                : 'bg-[#F9F7F2] text-[#233D37] hover:bg-[#EBE7DC]'
+                                            }`}
+                                        >
+                                            <Calendar size={16}/> Mon Calendrier
+                                        </button>
 
-                                    <button onClick={() => setView('profile')} className={`w-full text-left p-3 rounded-xl font-medium flex items-center gap-2 transition ${view === 'profile' ? 'bg-emerald-50 text-[#047857]' : 'text-gray-400 hover:bg-gray-50'}`}>
-                                        <User size={18}/> Mon Profil
-                                    </button>
-                                    
-                                    <hr className="border-gray-100" />
-                                    <button onClick={() => setView(prestataireType === 'traiteur' ? 'add_formule' : 'add_salle')} className="w-full text-left p-3 text-gray-400 hover:bg-emerald-50 hover:text-[#047857] rounded-xl transition flex items-center gap-2">
-                                        <PlusCircle size={18}/> {prestataireType === 'traiteur' ? 'Ajouter Formule' : 'Ajouter Salle'}
-                                    </button>
-                                </nav>
-                                <button onClick={handleLogout} className="p-3 text-red-400 hover:bg-red-50 rounded-xl mt-auto font-bold flex items-center gap-2 border-t pt-4 text-left">
-                                    <LogOut size={18}/> Déconnexion
-                                </button>
+                                        <button 
+                                            onClick={() => setView('profile')} 
+                                            className={`w-full p-4 text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition-all border-b border-[#1E352F]/40 ${
+                                                view === 'profile' 
+                                                ? 'bg-[#D4B97C] text-[#233D37] font-bold shadow-inner' 
+                                                : 'bg-[#F9F7F2] text-[#233D37] hover:bg-[#EBE7DC]'
+                                            }`}
+                                        >
+                                            <User size={16}/> Mon Profil
+                                        </button>
+
+                                        <button 
+                                            onClick={handleLogout} 
+                                            className="w-full p-4 text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition-all bg-[#F9F7F2] text-red-700 hover:bg-red-50 border-b border-[#1E352F]/40"
+                                        >
+                                            <LogOut size={16}/> Déconnexion
+                                        </button>
+                                        
+                                        {/* زر الإضافة دابا كيبدل غير الـ subView وسط الدشبرد ومكيديناش لباج أخرى */}
+                                        <div className="p-4">
+                                            <button 
+                                                onClick={() => { setView('prestataire_dashboard'); setSubView('add'); }} 
+                                                className={`w-full p-3 text-xs uppercase tracking-wider font-semibold rounded-xl border transition flex items-center gap-3 justify-center shadow ${
+                                                    subView === 'add' 
+                                                    ? 'bg-[#D4B97C] text-[#233D37] border-[#D4B97C]' 
+                                                    : 'bg-[#1E352F] border-[#D4B97C]/30 text-[#D4B97C] hover:bg-[#2A4840]'
+                                                }`}
+                                            >
+                                                <PlusCircle size={16}/> {prestataireType === 'traiteur' ? 'Ajouter Formule' : 'Ajouter Salle'}
+                                            </button>
+                                        </div>
+                                    </nav>
+                                </div>
                             </aside>
 
-                            <main className="flex-1 p-10 bg-[#FAFAFA] overflow-y-auto text-left">
+                            {/* محتوى الصفحة الرئيسي */}
+                            <main className="flex-1 p-10 bg-[#F9F7F2] overflow-y-auto text-left">
                                 <div className="max-w-5xl mx-auto">
+                                    
                                     {view === 'prestataire_dashboard' && (
                                         <>
-                                            <header className="mb-10">
-                                                <h2 className="text-3xl font-bold italic text-gray-800 tracking-tight">Bienvenue, <span className="text-[#047857] font-serif">{user?.prenom}</span></h2>
-                                                <p className="text-gray-400 font-medium capitalize mt-1 border-l-4 border-[#D4AF37] pl-3 italic">Espace {prestataireType}</p>
+                                            {/* الهيدر العلوي */}
+                                            <header className="mb-10 text-center border-b pb-6 border-gray-200">
+                                                <h1 className="text-2xl font-bold tracking-widest text-[#233D37] uppercase">
+                                                    {prestataireType === 'traiteur' ? "GESTION DES FORMULES" : "GESTION DES SALLES"}
+                                                </h1>
+                                                <p className="text-sm text-gray-400 mt-2 italic font-serif">
+                                                    Bienvenue, {user?.prenom} • Espace {prestataireType}
+                                                </p>
                                             </header>
-                                            <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100">
-                                                {prestataireType === 'traiteur' ? <FormuleList prestataireId={localStorage.getItem('prestataire_id')} /> : <SalleList prestataireId={localStorage.getItem('prestataire_id')} />}
-                                            </div>
+
+                                            {/* التحكم فالعرض بناء على الـ subView */}
+                                            {subView === 'list' ? (
+                                                <div className="bg-[#233D37]/5 rounded-[2.5rem] p-8 border border-gray-100">
+                                                    {prestataireType === 'traiteur' ? (
+                                                        <FormuleList prestataireId={localStorage.getItem('prestataire_id')} />
+                                                    ) : (
+                                                        <SalleList prestataireId={localStorage.getItem('prestataire_id')} />
+                                                    )}
+                                                    {/* زر إضافي لتحويل العرض للفورم من وسط الصفحة */}
+                                                    <div className="flex justify-center mt-6">
+                                                        <button 
+                                                            onClick={() => setSubView('add')}
+                                                            className="bg-[#233D37] text-[#D4B97C] px-6 py-2.5 text-xs font-bold uppercase tracking-wider rounded-full hover:bg-[#1E352F] transition"
+                                                        >
+                                                            + {prestataireType === 'traiteur' ? 'Nouveau Formule' : 'Nouveau Salle'}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                /* 🟡 هنا تم تطبيق ديزاين الكارت الذهبي الدائري المستوحى من صورة image_4bea1d.png */
+                                                <div className="max-w-md mx-auto bg-[#D4B97C] rounded-[2.5rem] p-8 shadow-xl border border-[#c4a96c]/40 text-center text-[#233D37]">
+                                                    <div className="flex items-center justify-center gap-2 mb-6 font-bold uppercase tracking-widest text-sm text-[#233D37]">
+                                                        <PlusCircle size={18} /> 
+                                                        {prestataireType === 'traiteur' ? 'Nouveau Formule' : 'Nouveau Salle'}
+                                                    </div>
+                                                    
+                                                    {/* استدعاء المكونات بدون الانتقال لصفحة أخرى */}
+                                                    {prestataireType === 'traiteur' ? (
+                                                        <AddFormuleForm 
+                                                            prestataireId={localStorage.getItem('prestataire_id')} 
+                                                            onSuccess={() => setSubView('list')} 
+                                                        />
+                                                    ) : (
+                                                        <AddSalleForm 
+                                                            prestataireId={localStorage.getItem('prestataire_id')} 
+                                                            onSuccess={() => setSubView('list')} 
+                                                        />
+                                                    )}
+
+                                                    <button 
+                                                        onClick={() => setSubView('list')} 
+                                                       className="w-full bg-[#233D37] text-[#F9F7F2] font-bold text-xs uppercase tracking-wider py-3 px-6 rounded-xl border border-[#233D37] hover:bg-[#1E352F] transition-all shadow"
+                                                    >
+                                                        Annuler et retourner
+                                                    </button>
+                                                </div>
+                                            )}
                                         </>
                                     )}
+
+                                    {view === 'prestataire_devis' && (
+                                        <PrestataireDevis prestataireId={localStorage.getItem('prestataire_id')} />
+                                    )}
+
                                     {view === 'profile' && <Profile user={user} />}
                                     {view === 'prestataire_calendar' && <PrestataireCalendar />}
                                 </div>
@@ -172,24 +260,9 @@ function App() {
                         </motion.div>
                     )}
 
-                    {(view === 'add_salle' || view === 'add_formule') && (
-                        <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="w-full min-h-full bg-gray-50 p-10 overflow-y-auto">
-                            <div className="max-w-4xl mx-auto">
-                                <button onClick={() => setView('prestataire_dashboard')} className="mb-6 text-[#047857] font-bold flex items-center gap-2 hover:underline bg-white px-5 py-2 rounded-full shadow-sm shadow-emerald-900/5 text-left">
-                                    ← Retour au Dashboard
-                                </button>
-                                <div className="bg-white rounded-[3rem] shadow-xl border border-gray-100 overflow-hidden text-left">
-                                    {view === 'add_salle' ? <AddSalleForm prestataireId={localStorage.getItem('prestataire_id')} /> : <AddFormuleForm prestataireId={localStorage.getItem('prestataire_id')} />}
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-
                 </AnimatePresence>
             </div>
 
-            {/* 🤖 🎯 تم نقل البوت إلى هنا (خارج نطاق الـ flex و الـ overflow-hidden للـ Layout) */}
-            {/* هاد التغيير غادي يخليه يطبق الـ fixed bottom-6 right-6 بحرية تامة وينزل لتحت على اليمن */}
             {showWeddingBot && <WeddingBot userId={user?.id} />}
         </div>
     );

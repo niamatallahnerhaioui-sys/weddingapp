@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Calculator } from 'lucide-react';
-
+import budgetImage from "../assets/budget-estimator.jpg";
 const BudgetEstimator = ({ setView }) => {
     const [nbInvites, setNbInvites] = useState('');
     const [budgetTotal, setBudgetTotal] = useState('');
@@ -114,6 +114,55 @@ const BudgetEstimator = ({ setView }) => {
                             ))}
                         </div>
                     )}
+                    {/* IMAGE SECTION */}
+
+<div className="flex justify-center mt-20">
+
+    <img
+        src={budgetImage}
+        alt="Budget"
+        className="
+        w-[500px]
+        h-[340px]
+        object-cover
+        "
+        style={{
+            borderRadius: "45% 55% 50% 50% / 55% 45% 55% 45%"
+        }}
+    />
+
+</div>
+
+{/* TEXT UNDER IMAGE */}
+
+<div className="text-center mt-14">
+
+    <h3
+        className="text-[28px] uppercase text-[#0A2A22] mb-8"
+        style={{ fontFamily: "'Playfair Display', serif" }}
+    >
+        Planifiez Votre Budget
+    </h3>
+
+    <div className="flex justify-center items-center gap-3">
+
+        <p className="text-[22px] uppercase text-[#0A2A22] leading-relaxed">
+            Répartition intelligente basée sur
+            <br />
+            nos packs exclusifs
+        </p>
+
+        <span className="text-4xl">
+            
+        </span>
+
+    </div>
+
+</div>
+
+{/* GOLD LINE */}
+
+<div className="w-full h-[6px] bg-[#D4AF37] mt-16 rounded-full" />
                 </div>
             </div>
             

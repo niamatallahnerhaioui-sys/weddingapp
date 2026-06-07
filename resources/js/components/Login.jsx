@@ -1,7 +1,6 @@
 // resources/js/components/Login.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Mail, Lock } from 'lucide-react';
 
 const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
     const [formData, setFormData] = useState({ email: '', password: '' });
@@ -12,10 +11,7 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
             const res = await axios.post('/api/login', formData);
             
             if (res.data.token) {
-                // حفظ التوكن باسم موحد 'token' في المتصفح
                 localStorage.setItem('token', res.data.token);
-                
-                // تفعيل التوكن فوراً في axios للعمليات اللاحقة المباشرة
                 axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
             }
             
@@ -23,7 +19,6 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
                 localStorage.setItem('prestataire_id', res.data.user.prestataire.id);
             }
 
-            // تمرير البيانات كاملة دون المساس بمتغيرات الأب
             onLoginSuccess(res.data.user, res.data.role);
             
         } catch (error) {
@@ -34,45 +29,70 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
-            <div className="bg-white p-10 rounded-[2rem] shadow-xl w-full max-w-md border-t-8 border-[#047857]">
-                <div className="text-center mb-8">
-                    <h1 className="text-4xl font-serif font-bold text-[#047857] mb-2">Elite Wedding</h1>
-                    <p className="text-gray-400">Connectez-vous à votre espace</p>
-                </div>
+        <div className="min-h-screen w-full bg-[#F3EFEA] flex flex-col items-center justify-center font-serif p-4 select-none">
+            
+            {/* حاوية الفورم المركزية - مدمجة ومطابقة للتصميم المرجعي */}
+            <div className="w-full max-w-sm flex flex-col items-center bg-transparent">
                 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={20}/>
+                {/* العنوان الرئيسي العلوي */}
+                <h1 className="text-2xl sm:text-3xl tracking-widest text-[#1E2E28] font-light uppercase mb-1">
+                    CONNEXION
+                </h1>
+                
+                {/* العنوان الفرعي مع خط فاصل شفاف من الأسفل */}
+                <h2 className="text-xs tracking-wider text-[#1E2E28] uppercase font-semibold mb-8 border-b border-[#1E2E28]/20 pb-2 w-full text-center">
+                    CONNECTEZ-VOUS À VOTRE ESPACE
+                </h2>
+
+                <form onSubmit={handleSubmit} className="w-full space-y-4">
+                    
+                    {/* حقل الإدخال: EMAIL باللون الذهبي المطلوب BC9414 */}
+                    <div className="w-full">
+                        <div className="flex items-center bg-[#BC9414] px-3 py-1.5 text-[10px] font-bold tracking-widest text-white uppercase">
+                            <span className="mr-2 text-xs">✉</span> EMAIL
+                        </div>
                         <input 
                             type="email" 
-                            placeholder="Email" 
-                            className="w-full p-4 pl-12 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-[#047857] transition-all"
+                            className="w-full p-2.5 bg-[#EADCC5]/60 border-none outline-none text-[#1E2E28] font-sans text-sm focus:bg-[#EADCC5] transition-all"
                             onChange={(e) => setFormData({...formData, email: e.target.value})}
                             required
                         />
                     </div>
 
-                    <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={20}/>
+                    {/* حقل الإدخال: PASSWORD باللون الذهبي المطلوب BC9414 */}
+                    <div className="w-full">
+                        <div className="flex items-center bg-[#BC9414] px-3 py-1.5 text-[10px] font-bold tracking-widest text-white uppercase">
+                            <span className="mr-2 text-xs">🔒</span> PASSWORD
+                        </div>
                         <input 
                             type="password" 
-                            placeholder="Mot de passe" 
-                            className="w-full p-4 pl-12 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-[#047857] transition-all"
+                            className="w-full p-2.5 bg-[#EADCC5]/60 border-none outline-none text-[#1E2E28] font-sans text-sm focus:bg-[#EADCC5] transition-all"
                             onChange={(e) => setFormData({...formData, password: e.target.value})}
                             required
                         />
                     </div>
 
-                    <button type="submit" className="w-full bg-[#047857] text-white py-4 rounded-2xl font-bold hover:opacity-90 transition-all shadow-lg text-lg">
-                        Se connecter
+                    {/* زر الدخول المستطيل بالأخضر الداكن المميز */}
+                    <button 
+                        type="submit" 
+                        className="w-full bg-[#4A6157] text-white py-2 text-xs tracking-widest uppercase font-bold hover:bg-[#3D5249] transition-all duration-300 mt-2"
+                    >
+                        SE CONNECTER
                     </button>
 
-                    <div className="text-center pt-4">
-                        <p className="text-gray-500 text-sm">
-                            Nouveau ? <span onClick={onSwitchToRegister} className="text-[#D4AF37] cursor-pointer font-bold hover:underline">Créer un compte</span>
+                    {/* رابط الانتقال لإنشاء حساب مصلح بلون متناسق */}
+                    <div className="text-center pt-2">
+                        <p className="text-[#1E2E28]/70 text-xs tracking-wider">
+                            Nouveau ?{' '}
+                            <span 
+                                onClick={onSwitchToRegister} 
+                                className="text-[#BC9414] cursor-pointer font-bold hover:underline ml-1"
+                            >
+                                Créer un compte
+                            </span>
                         </p>
                     </div>
+
                 </form>
             </div>
         </div>

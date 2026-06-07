@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Users, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import axios from 'axios';
 
-export default function AddSalleForm({ onBack, onSuccess }) { // حيدنا prestataireId حيت مبقاش محتاجينو هنا
+export default function AddSalleForm({ onBack, onSuccess }) {
     const [salleData, setSalleData] = useState({
         nom: '',
         adresse: '',
@@ -27,7 +27,6 @@ export default function AddSalleForm({ onBack, onSuccess }) { // حيدنا pres
         e.preventDefault();
         const data = new FormData();
         
-        // إضافة باقي الحقول تلقائياً
         Object.keys(salleData).forEach(key => {
             if (salleData[key] !== '') {
                 data.append(key, salleData[key]);
@@ -38,14 +37,13 @@ export default function AddSalleForm({ onBack, onSuccess }) { // حيدنا pres
             data.append('photo', photo);
         }
 
-        // كنجيبو الـ Token اللي مخزنينو فـ المتصفح
         const token = localStorage.getItem('token');
 
         try {
             const response = await axios.post('/api/salles', data, {
                 headers: { 
                     'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${token}` // صيفطنا الساروت للباكيند
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
@@ -56,69 +54,76 @@ export default function AddSalleForm({ onBack, onSuccess }) { // حيدنا pres
             }
         } catch (error) {
             if (error.response && error.response.status === 422) {
-                console.log("Validation Errors:", error.response.data.errors);
                 alert("Erreur de validation: " + Object.values(error.response.data.errors).flat().join('\n'));
             } else if (error.response && error.response.status === 401) {
                 alert("Votre session a expiré. Veuillez vous reconnecter.");
             } else {
-                console.error("Server Error:", error.response?.data);
                 alert("Erreur: " + (error.response?.data?.error || "Problème de connexion au serveur."));
             }
         }
     };
 
     return (
-        <div className="p-8 max-w-4xl mx-auto bg-white rounded-[2rem]">
-            <div className="mb-8">
-                <h2 className="text-3xl font-serif font-bold text-[#047857]">Détails de la Salle</h2>
-                <p className="text-gray-400">Configurez votre espace d'exception.</p>
+        <div className="w-full">
+            <div className="mb-6 text-center">
+                {/* 🟢 العنوان باللون الأخضر الداكن المطلوب */}
+                <h2 className="text-xl font-bold text-[#233D37] uppercase tracking-wider">Détails de la Salle</h2>
+                <p className="text-gray-600 text-xs mt-1">Configurez votre espace d'exception.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nom de la salle</label>
-                    <input name="nom" onChange={handleInputChange} className="w-full p-4 border border-gray-100 rounded-2xl bg-gray-50 focus:ring-2 focus:ring-[#D4AF37] outline-none" required />
-                </div>
-
-                <div className="relative">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Ville</label>
-                    <input name="ville" onChange={handleInputChange} className="w-full p-4 border border-gray-100 rounded-2xl bg-gray-50 outline-none" required />
-                </div>
-                <div className="relative">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Adresse</label>
-                    <input name="adresse" onChange={handleInputChange} className="w-full p-4 border border-gray-100 rounded-2xl bg-gray-50 outline-none" required />
+                    <label className="block text-xs font-bold uppercase text-[#233D37] mb-1">Nom de la salle</label>
+                    <input name="nom" onChange={handleInputChange} className="w-full p-3 text-sm border border-transparent rounded-xl bg-white text-gray-800 outline-none shadow-sm" required />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Capacité Min</label>
-                    <input name="capacite_min" type="number" onChange={handleInputChange} className="w-full p-4 border border-gray-100 rounded-2xl bg-gray-50 outline-none" required />
+                    <label className="block text-xs font-bold uppercase text-[#233D37] mb-1">Ville</label>
+                    <input name="ville" onChange={handleInputChange} className="w-full p-3 text-sm border border-transparent rounded-xl bg-white text-gray-800 outline-none shadow-sm" required />
                 </div>
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Capacité Max</label>
-                    <input name="capacite_max" type="number" onChange={handleInputChange} className="w-full p-4 border border-gray-100 rounded-2xl bg-gray-50 outline-none" required />
+                    <label className="block text-xs font-bold uppercase text-[#233D37] mb-1">Adresse</label>
+                    <input name="adresse" onChange={handleInputChange} className="w-full p-3 text-sm border border-transparent rounded-xl bg-white text-gray-800 outline-none shadow-sm" required />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Prix Journée (DH)</label>
-                    <input name="prix_journee" type="number" onChange={handleInputChange} className="w-full p-4 border border-gray-100 rounded-2xl bg-gray-50 outline-none" required />
+                    <label className="block text-xs font-bold uppercase text-[#233D37] mb-1">Capacité Min</label>
+                    <input name="capacite_min" type="number" onChange={handleInputChange} className="w-full p-3 text-sm border border-transparent rounded-xl bg-white text-gray-800 outline-none shadow-sm" required />
                 </div>
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Prix Soirée (DH)</label>
-                    <input name="prix_soiree" type="number" onChange={handleInputChange} className="w-full p-4 border border-gray-100 rounded-2xl bg-gray-50 outline-none" required />
+                    <label className="block text-xs font-bold uppercase text-[#233D37] mb-1">Capacité Max</label>
+                    <input name="capacite_max" type="number" onChange={handleInputChange} className="w-full p-3 text-sm border border-transparent rounded-xl bg-white text-gray-800 outline-none shadow-sm" required />
+                </div>
+
+                <div>
+                    <label className="block text-xs font-bold uppercase text-[#233D37] mb-1">Prix Journée (DH)</label>
+                    <input name="prix_journee" type="number" onChange={handleInputChange} className="w-full p-3 text-sm border border-transparent rounded-xl bg-white text-gray-800 outline-none shadow-sm" required />
+                </div>
+                <div>
+                    <label className="block text-xs font-bold uppercase text-[#233D37] mb-1">Prix Soirée (DH)</label>
+                    <input name="prix_soiree" type="number" onChange={handleInputChange} className="w-full p-3 text-sm border border-transparent rounded-xl bg-white text-gray-800 outline-none shadow-sm" required />
                 </div>
 
                 <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Photo</label>
-                    <div className="border-2 border-dashed border-gray-200 rounded-2xl p-6 flex flex-col items-center bg-gray-50 relative">
-                        <Upload className="text-gray-400 mb-2" size={32} />
-                        <span className="text-sm text-gray-500">{photo ? photo.name : "Upload photo"}</span>
+                    <label className="block text-xs font-bold uppercase text-[#233D37] mb-1">Description</label>
+                    <textarea name="description" rows="2" onChange={handleInputChange} className="w-full p-3 text-sm border border-transparent rounded-xl bg-white text-gray-800 outline-none shadow-sm" required placeholder="Détails supplémentaires..."></textarea>
+                </div>
+
+                <div className="md:col-span-2">
+                    <label className="block text-xs font-bold uppercase text-[#233D37] mb-1">Photo</label>
+                    <div className="border border-dashed border-[#233D37]/30 rounded-xl p-4 flex flex-col items-center bg-white/50 relative">
+                        <Upload className="text-[#233D37]/70 mb-1" size={24} />
+                        <span className="text-xs text-[#233D37]/80 font-medium">{photo ? photo.name : "Télécharger une photo"}</span>
                         <input type="file" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
                     </div>
                 </div>
 
-                <button type="submit" className="md:col-span-2 bg-[#047857] text-white py-5 rounded-2xl font-bold shadow-lg hover:bg-[#035e44] transition-all">
-                    Enregistrer la Salle
-                </button>
+                {/* 🟢 زر الحفظ بنفس الـ Style الموحد بلون #233D37 */}
+                <div className="md:col-span-2 mt-2">
+                    <button type="submit" className="w-full bg-[#233D37] text-[#F9F7F2] font-bold text-xs uppercase tracking-wider py-3 px-6 rounded-xl border border-[#233D37] hover:bg-[#1E352F] transition-all shadow">
+                        Enregistrer la Salle
+                    </button>
+                </div>
             </form>
         </div>
     );
